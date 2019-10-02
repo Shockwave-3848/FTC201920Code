@@ -53,7 +53,7 @@ import java.util.Locale;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list.
  */
 @TeleOp(name = "Sensor: REVColorDistance", group = "Sensor")
-@Disabled                            // Comment this out to add to the opmode list
+
 public class SensorREVColorDistance extends LinearOpMode {
 
     /**
@@ -134,6 +134,16 @@ public class SensorREVColorDistance extends LinearOpMode {
             telemetry.addData("Green", sensorColor.green());
             telemetry.addData("Blue ", sensorColor.blue());
             telemetry.addData("Hue", hsvValues[0]);
+
+            int GCF = sensorColor.blue();
+            if (GCF <= 0){
+                GCF = 1;
+            }
+            if (sensorColor.green()/GCF < 2 && sensorColor.red()/GCF > 2){
+                telemetry.addData("Yellow", "Yes");
+            } else {
+                telemetry.addData("Yellow", "No");
+            }
 
             // change the background color to match the color detected by the RGB sensor.
             // pass a reference to the hue, saturation, and value array as an argument
