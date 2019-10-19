@@ -1,0 +1,186 @@
+package org.firstinspires.ftc.teamcode;
+
+//imports
+
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import java.util.List;
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+
+//imports
+
+@Disabled
+@Autonomous(name="Skystone_Autonomous", group="Shockwave")
+
+public class Skystone_Autonomous extends LinearOpMode {
+
+    //Defining the wheels there motors
+    DcMotor right_motor;
+    DcMotor left_motor;
+
+    //Arm
+    DcMotor arm;
+
+    //Wheel stats
+    static final int motor_revcount = 2240; //2240 ticks per rotation for the REV-41-1301 Encoder Specifications. We use the Rev-41-1291, but I could not find the specific values. The REV-41-1301 is similar enough for this to work hopefully. If the robot is not working correctly try other values.
+    static final double wheel_diameter = 3.6;
+    static final double counts_per_inch = (motor_revcount) / (wheel_diameter * Math.PI);
+
+    //Speed stats
+    static double drive_speed = 1.0;
+
+    //A little forgiveness for the robot
+    static double tolerance = 5;
+
+    //Has the pos_inputed
+    String pos_inputed = "not inputted";
+
+    //Red or blue?
+    String red_or_blue = "not inputted";
+
+   /*
+                       Playing field
+
+       ------------------------------------------------------------
+       | Blue     /                                      \    Red |
+       |Building/                                        \Building|
+       |      /                                           \   Zone|
+       |    /                                               \     |
+       |  /                                                   \   |
+       |/                                                       \ |
+       |Red Pos 1                                     Blue Pos 1 \|
+       |---Red Bridge--------Neutral Bridge--------Blue Bridge----|
+       |Blue Pos 2                                    Blue Pos 2  |
+       |                                                          |
+       |                                                          |
+       |                                                          |
+       |                                                          |
+       |                                                          |
+       | Blue                                                 Red |
+       | Deposit                                           Deposit|
+       ------------------------------------------------------------
+
+*/
+    //methods ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    //t_message stands for telemetry message
+    public void t_message(String text){
+        telemetry.addLine(text);
+        telemetry.update();
+
+    }//end of t_message
+    public void where_are_we(){
+
+        //Color message
+        telemetry.addData("Please", " input color. Press x if we are Blue and press B if we are red.");
+        telemetry.update();
+
+        while (red_or_blue == "not inputted"){
+            if (gamepad1.x){
+                red_or_blue = "Blue";
+            }
+
+            if (gamepad1.b){
+                red_or_blue = "Red";
+            }
+        }
+
+        //Position message
+        telemetry.addData("Please", " input position. Press Y if we are in position 1" +
+                " and press A if we are position 2.");
+        telemetry.update();
+
+        while (pos_inputed == "not inputted"){
+            if (gamepad1.y){
+                pos_inputed = "1";
+            }
+
+            if (gamepad1.a){
+                pos_inputed = "2";
+            }
+        }
+
+        telemetry.addData("All", " set to go!");
+        telemetry.update();
+
+    }//end of where are we
+
+    public void drive(double left_motor_power, double right_motor_power, double inches, double speed){
+
+        //declaring variables, where is it going?
+        int new_left_target;
+        int new_right_target;
+
+        // If the opmode is still active
+        if (opModeIsActive()) {
+
+            // Determine new target position, and pass to motor controller
+            new_left_target = left_motor.getCurrentPosition() + (int)(inches * counts_per_inch);
+            new_right_target = right_motor.getCurrentPosition() + (int)(inches * counts_per_inch);
+
+            //set the target
+            left_motor.setTargetPosition(new_left_target);
+            right_motor.setTargetPosition(new_right_target);
+            //finished setting the target
+
+            //turn on RUN_TO_POSITION
+            left_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            right_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            //rstart motion.
+            left_motor.setPower(Math.abs(speed));
+            right_motor.setPower(Math.abs(speed));
+
+            //this loop updates the user about the postion of the wheels
+            while (opModeIsActive() && (left_motor.isBusy()) && (right_motor.isBusy())) {
+
+                // Display it for the driver.
+                telemetry.addData("Path1",  "Running to %7d :%7d", new_left_target,  new_right_target);
+                telemetry.addData("Path2",  "Running at %7d :%7d", left_motor.getCurrentPosition(), right_motor.getCurrentPosition());
+                telemetry.update();
+            }
+
+            //end of setting the target
+
+        }//end of opModeIsActive()
+
+    }//end of drive
+
+    //methods ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    @Override
+    //Where all the commands are issued ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    public void runOpMode() {
+
+        //names the wheels for configuration
+        right_motor = hardwareMap.dcMotor.get("right_motor");
+
+        left_motor= hardwareMap.dcMotor.get("left_motor");
+        //names the wheels for configuration
+
+        right_motor.setDirection(DcMotor.Direction.REVERSE); //makes the motor faced the right way.
+
+        //Driver input
+        where_are_we();
+
+        //wait for start
+        waitForStart();
+
+    }//end of runOpMode
+
+    //Where all the commands are issued ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+}//end of Skystone_Autonomous
