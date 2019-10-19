@@ -33,7 +33,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import java.lang.Math;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -85,9 +86,9 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
  */
 
 
-@TeleOp(name="SKYSTONE Vuforia Nav", group ="Concept")
+@TeleOp(name="SKYSTONE Vuforia Nav Rotate", group ="Concept")
 @Disabled
-public class ConceptVuforiaSkyStoneNavigation extends LinearOpMode {
+public class VuforiaSkyStoneRotate extends LinearOpMode {
 
     // IMPORTANT:  For Phone Camera, set 1) the camera source and 2) the orientation, based on how your phone is mounted:
     // 1) Camera Source.  Valid choices are:  BACK (behind screen) or FRONT (selfie side)
@@ -98,15 +99,14 @@ public class ConceptVuforiaSkyStoneNavigation extends LinearOpMode {
     private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
     private static final boolean PHONE_IS_PORTRAIT = false  ;
 
+
     private DcMotor leftDrive = null;
     private DcMotor rightDrive = null;
+    private ElapsedTime runtime = new ElapsedTime();
+    double nextTime;
+    double timeGap = 0.5;
+    boolean flag = false;
 
-    double currentXLocation;
-    double currentYLocation;
-    double currentVuforiaYaw;
-
-    double[] desiredLocation = {60.0f, 60.0f};
-    double desiredYaw;
 
     /*
      * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
@@ -324,31 +324,21 @@ public class ConceptVuforiaSkyStoneNavigation extends LinearOpMode {
         // CONSEQUENTLY do not put any driving commands in this loop.
         // To restore the normal opmode structure, just un-comment the following line:
 
-        if (desiredLocation[0] > 0 && desiredLocation[1] > 0){
-            desiredYaw = Math.atan(desiredLocation[1] / desiredLocation[0]);
-        } else if (desiredLocation[0] < 0 && desiredLocation[1] > 0){
-            desiredYaw = Math.atan((desiredLocation[1] * -1) / desiredLocation[0]) + 90;
-        } else if (desiredLocation[0] < 0 && desiredLocation[1] < 0){
-            desiredYaw = Math.atan((desiredLocation[1] * -1) / desiredLocation[0]) - 90;
-        } else {
-            desiredYaw = Math.atan(desiredLocation[1] / desiredLocation[0]);
-        }
-
-        waitForStart();
+        // waitForStart();
 
         // Note: To use the remote camera preview:
         // AFTER you hit Init on the Driver Station, use the "options menu" to select "Camera Stream"
         // Tap the preview window to receive a fresh image.
 
-        targetsSkyStone.activate();
 
         leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
         rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
         leftDrive.setDirection(DcMotor.Direction.FORWARD);
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
 
+        nextTime = runtime.seconds();
+        targetsSkyStone.activate();
         while (!isStopRequested()) {
-
 
             // check all the trackable targets to see which one (if any) is visible.
             targetVisible = false;
@@ -367,34 +357,77 @@ public class ConceptVuforiaSkyStoneNavigation extends LinearOpMode {
                 }
             }
 
+
+
+
+
+
+
+
+
+
+
             // Provide feedback as to where the robot is located (if we know).
+            if (nextTime < runtime.seconds()) {
+                nextTime = runtime.seconds() + timeGap;
+                telemetry.addData("Loop", "in");
+                if (flag) {
+                    flag = false;
+                } else {
+                    flag = true;
+                }
+            }
+
             if (targetVisible) {
+                leftDrive.setPower(0);
+                rightDrive.setPower(0);
+
+
                 // express position (translation) of robot in inches.
                 VectorF translation = lastLocation.getTranslation();
                 telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
                         translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
 
-                currentXLocation = translation.get(0) / mmPerInch;
-                currentYLocation = translation.get(1) / mmPerInch;
-
                 // express the rotation of the robot in degrees.
                 Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
                 telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
 
-                currentVuforiaYaw = rotation.thirdAngle;
+                if(174 > rotation.thirdAngle){
+                    leftDrive.setPower(0.10);
+                    rightDrive.setPower(-0.10);
+                } else if (176 < rotation.thirdAngle) {
+                    leftDrive.setPower(-0.10);
+                    rightDrive.setPower(0.10);
+                } else {
+                    leftDrive.setPower(0);
+                    rightDrive.setPower(0);
+                }
             }
+
+
             else {
                 telemetry.addData("Visible Target", "none");
+
+                telemetry.addData("Is Flag whether True or False:", flag);//checks if flag is true or false
+
+                if (flag) {
+                    leftDrive.setPower(0.25);
+                    rightDrive.setPower(-0.25);
+                } else {
+                    leftDrive.setPower(0);
+                    rightDrive.setPower(0);
+                }
             }
             telemetry.update();
 
-            // My code
-            // currentXLocation
-            // currentYLocation
-            // currentVuforiaYaw
-            // desiredLocation[0] = x
-            // desiredLocation[1] = y
-            // desiredYaw
+
+
+
+
+
+
+
+
 
 
         }
