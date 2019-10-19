@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Code;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -19,6 +19,7 @@ public class GyroTurn extends LinearOpMode
 {
     BNO055IMU               imu;
     Orientation             lastAngles = new Orientation();
+    double                  globalAngle = 0;
 
     @Override
     public void runOpMode() throws InterruptedException
@@ -33,6 +34,42 @@ public class GyroTurn extends LinearOpMode
         imu = hardwareMap.get(BNO055IMU.class, "imu");
 
         imu.initialize(parameters);
+
+        while (!isStopRequested() && !imu.isGyroCalibrated())
+        {
+            sleep(50);
+            idle();
+
+        }
+
+        waitForStart();
+
+        while (opModeIsActive()) {
+            telemetry.addData("Angle:", getAngle());
+            telemetry.update();
+        }
     }
 
+    private double getAngle()
+    {
+        // We experimentally determined the Z axis is the axis we want to use for heading angle.
+        // We have to process the angle because the imu works in euler angles so the Z axis is
+        // returned as 0 to +180 or 0 to -180 rolling back to -179 or +179 when rotation passes
+        // 180 degrees. We detect this transition and track the total cumulative angle of rotation.
+
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
+
+        if (deltaAngle < -180)
+            deltaAngle += 360;
+        else if (deltaAngle > 180)
+            deltaAngle -= 360;
+
+        globalAngle += deltaAngle;
+
+        lastAngles = angles;
+
+        return globalAngle;
+    }
 }
