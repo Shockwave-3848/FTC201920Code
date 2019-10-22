@@ -13,16 +13,28 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 
-@Autonomous(name="GyroTurn", group="Exercises")
+//@Autonomous(name="GyroTurn", group="Exercises")
 //@Disabled
 public class GyroTurn extends LinearOpMode
 {
     BNO055IMU               imu;
     Orientation             lastAngles = new Orientation();
-    double                  globalAngle = 0;
+    public double                  globalAngle = 0;
 
-    @Override
-    public void runOpMode() throws InterruptedException
+    GyroTurn(){
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+
+        parameters.mode                = BNO055IMU.SensorMode.IMU;
+        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled      = false;
+
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+
+        imu.initialize(parameters);
+    }
+    @Override public void runOpMode() {}
+    /*public void initGyro() throws InterruptedException
     {
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
 
@@ -41,16 +53,10 @@ public class GyroTurn extends LinearOpMode
             idle();
 
         }
+    }*/
 
-        waitForStart();
 
-        while (opModeIsActive()) {
-            telemetry.addData("Angle:", getAngle());
-            telemetry.update();
-        }
-    }
-
-    private double getAngle()
+    public void getAngle()
     {
         // We experimentally determined the Z axis is the axis we want to use for heading angle.
         // We have to process the angle because the imu works in euler angles so the Z axis is
@@ -69,7 +75,5 @@ public class GyroTurn extends LinearOpMode
         globalAngle += deltaAngle;
 
         lastAngles = angles;
-
-        return globalAngle;
     }
 }
