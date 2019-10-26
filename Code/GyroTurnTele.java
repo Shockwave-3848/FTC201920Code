@@ -1,30 +1,24 @@
 package org.firstinspires.ftc.teamcode.Code;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 
-
-public class GyroTurn
+@TeleOp(name="GyroTurnTele", group ="Concept")
+@Disabled
+public class GyroTurnTele extends LinearOpMode
 {
     BNO055IMU               imu;
     Orientation             lastAngles = new Orientation();
     double                  globalAngle = 0;
 
-    GyroTurn() {}
-
-    public void initGyro(HardwareMap hardwareMap) throws InterruptedException
-    {
+    @Override public void runOpMode() throws InterruptedException{
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
 
         parameters.mode                = BNO055IMU.SensorMode.IMU;
@@ -35,8 +29,13 @@ public class GyroTurn
         imu = hardwareMap.get(BNO055IMU.class, "imu");
 
         imu.initialize(parameters);
-    }
 
+        while (opModeIsActive()){
+            getAngle();
+            telemetry.addData("Angle", globalAngle);
+            telemetry.update();
+        }
+    }
 
     public void getAngle()
     {

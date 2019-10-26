@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode.Code;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -82,10 +83,12 @@ import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocaliz
 
 //@TeleOp(name="SKYSTONE Vuforia Nav", group ="Concept")
 //@Disabled
-public class ConceptVuforiaSkyStoneNavigation extends LinearOpMode {
+public class ConceptVuforiaSkyStoneNavigation {
     public double currentXLocation = 0;
     public double currentYLocation = 0;
     public double currentVuforiaYaw = 0;
+    public boolean targetVisible = false;
+
 
     private VuforiaTrackables targetsSkyStone;
     private List<VuforiaTrackable> allTrackables;
@@ -136,12 +139,11 @@ public class ConceptVuforiaSkyStoneNavigation extends LinearOpMode {
     // Class Members
     private OpenGLMatrix lastLocation = null;
     private VuforiaLocalizer vuforia = null;
-    private boolean targetVisible = false;
     private float phoneXRotate    = 0;
     private float phoneYRotate    = 0;
     private float phoneZRotate    = 0;
 
-    ConceptVuforiaSkyStoneNavigation(){/*
+    ConceptVuforiaSkyStoneNavigation(HardwareMap hardwareMap){/*
      * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
      * We can pass Vuforia the handle to a camera preview resource (on the RC phone);
      * If no camera monitor is desired, use the parameter-less constructor instead (commented out below).
@@ -307,9 +309,9 @@ public class ConceptVuforiaSkyStoneNavigation extends LinearOpMode {
         for (VuforiaTrackable trackable : allTrackables) {
             ((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
         }
-    }
 
-    @Override public void runOpMode() {}
+        targetsSkyStone.activate();
+    }
 
 
     public void updateVuforia(){
@@ -317,14 +319,12 @@ public class ConceptVuforiaSkyStoneNavigation extends LinearOpMode {
         // AFTER you hit Init on the Driver Station, use the "options menu" to select "Camera Stream"
         // Tap the preview window to receive a fresh image.
 
-        targetsSkyStone.activate();
-
 
         // check all the trackable targets to see which one (if any) is visible.
         targetVisible = false;
         for (VuforiaTrackable trackable : allTrackables) {
             if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
-                telemetry.addData("Visible Target", trackable.getName());
+                //telemetry.addData("Visible Target", trackable.getName());
                 targetVisible = true;
 
                 // getUpdatedRobotLocation() will return null if no new information is available since
@@ -353,12 +353,15 @@ public class ConceptVuforiaSkyStoneNavigation extends LinearOpMode {
             currentVuforiaYaw = rotation.thirdAngle;
         }
         else {
-            telemetry.addData("Visible Target", "none");
+            //telemetry.addData("Visible Target", "none");
         }
-        telemetry.update();
+        //telemetry.update();
 
 
 
+    }
+
+    public void deactivateVuforia(){
         // Disable Tracking when we are done;
         targetsSkyStone.deactivate();
     }
