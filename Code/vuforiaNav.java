@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.Code;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import java.lang.Math;
@@ -17,13 +16,17 @@ public class vuforiaNav extends LinearOpMode {
 
     String mode = "Find Target";
 
-    double[] desiredLocation = {40.0f, 30.0f};
+    double[] desiredLocation = {-50.0f, 30.0f};
     double desiredYaw;
     @Override public void runOpMode() {
-        leftDrive = hardwareMap.get(DcMotor.class, "leftDrive");
-        rightDrive = hardwareMap.get(DcMotor.class, "rightDrive");
+        leftDrive = hardwareMap.get(DcMotor.class, "leftMotor");
+        rightDrive = hardwareMap.get(DcMotor.class, "rightMotor");
         leftDrive.setDirection(DcMotor.Direction.FORWARD);
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
+
+        double                  power;
+
+        PIDController           pidRotate;
 
         GyroTurn internalGyro = new GyroTurn();
         try {
@@ -34,6 +37,25 @@ public class vuforiaNav extends LinearOpMode {
 
         ConceptVuforiaSkyStoneNavigation vuforiaNavication = new ConceptVuforiaSkyStoneNavigation(hardwareMap);
 
+        internalGyro.globalAngle = 0;
+
+        pidRotate = new PIDController(0.02, 0.0, 0.1);
+        pidRotate.reset();
+        pidRotate.setSetpoint(360);
+        pidRotate.setInputRange(-180, 180);
+        pidRotate.setOutputRange(0, 1);
+        pidRotate.setTolerance(1);
+        pidRotate.enable();
+
+        while (!isStopRequested() && !pidRotate.onTarget()){
+            internalGyro.getAngle();
+            telemetry.addData("Angle", internalGyro.globalAngle);
+            power = pidRotate.performPID(internalGyro.globalAngle); // power will be - on right turn.
+            leftDrive.setPower(power);
+            rightDrive.setPower(-power);
+            telemetry.addData("Power", power);
+            telemetry.update();
+        }
 
         // My code
         // currentXLocation
@@ -49,7 +71,7 @@ public class vuforiaNav extends LinearOpMode {
         //    vuforiaNavication.currentXLocation;
         //    vuforiaNavication.currentYLocation;
         //    vuforiaNavication.currentVuforiaYaw;
-        while (!isStopRequested()) {
+        /*while (!isStopRequested()) {
 
 
             vuforiaNavication.updateVuforia();
@@ -97,6 +119,8 @@ public class vuforiaNav extends LinearOpMode {
 
         }
         vuforiaNavication.deactivateVuforia();
+
+         */
     }
 
     public double updateDesiredLocation(double wantedX, double wantedY, double currentX, double currentY){
