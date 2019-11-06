@@ -9,7 +9,7 @@ import java.lang.Math;
 
 
 @Autonomous(name="SKYSTONE Vuforia Nav", group ="Concept")
-//@Disabled
+@Disabled
 public class vuforiaNav extends LinearOpMode {
     private DcMotor leftDrive = null;
     private DcMotor rightDrive = null;
@@ -19,8 +19,8 @@ public class vuforiaNav extends LinearOpMode {
     double[] desiredLocation = {-50.0f, 30.0f};
     double desiredYaw;
     @Override public void runOpMode() {
-        leftDrive = hardwareMap.get(DcMotor.class, "leftMotor");
-        rightDrive = hardwareMap.get(DcMotor.class, "rightMotor");
+        leftDrive = hardwareMap.get(DcMotor.class, "left_motor");
+        rightDrive = hardwareMap.get(DcMotor.class, "right_motor");
         leftDrive.setDirection(DcMotor.Direction.FORWARD);
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
 
@@ -36,6 +36,8 @@ public class vuforiaNav extends LinearOpMode {
         }
 
         ConceptVuforiaSkyStoneNavigation vuforiaNavication = new ConceptVuforiaSkyStoneNavigation(hardwareMap);
+
+        waitForStart();
 
         internalGyro.globalAngle = 0;
 
