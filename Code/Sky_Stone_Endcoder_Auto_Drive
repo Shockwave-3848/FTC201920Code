@@ -1,0 +1,361 @@
+package org.firstinspires.ftc.teamcode;
+
+//imports
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.Range;
+import org.firstinspires.ftc.robotcore.external.Func;
+import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+//imports
+
+@Autonomous(name="Sky_Stone_Endcoder_Auto_Driver", group="Shockwave")
+//@Disabled
+
+public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
+
+    // Variables --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    // Defining the wheels there motors
+    DcMotor left_motor;
+    DcMotor right_motor;
+    DcMotor test_motor;
+
+    // Defining the IMU sensor object
+    BNO055IMU imu;
+
+    // Used for IMU turning
+    Orientation angles;
+    Acceleration gravity;
+    double globalAngle = 0;
+
+    // A little forgiveness for the robot's turning
+    static double tolerance = 2;
+
+    // Wheel stats
+    static final int motor_revcount = 30; //28 ticks per rotation for a 15:1 motor //4 ticks at output for core hex motor (72:1)
+    static final int gear_ratio = 15;
+    static final double wheel_diameter = 3.54;
+    static final double counts_per_inch = (motor_revcount * gear_ratio) / (wheel_diameter * Math.PI);
+
+    // Speed
+    static final double speed = 0.25;
+
+    // How many times should this spin
+    static int amount_of_spins_we_want = 4;
+    static int how_turns_in_a_spin = 4;
+    static int amount_of_spins_so_far = 0;
+
+    // Speed stats for turning
+    static double turn_drive_speed = 0.5;
+    static double turn_top_speed = 0.5;
+    static double turn_bottom_speed = 0.2;
+
+    // Has the pos_inputed
+    static String up_or_down = "not inputed";
+
+    // Red or blue?
+    static String red_or_blue = "not inputed";
+
+    // Which block?
+    static String block_num = "not inputed";
+
+    // Confirm
+    static String confirm = "not inputed";
+
+    // Variables --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    //where are we
+    public void where_are_we() {
+
+        //Color message
+        telemetry.addLine("Please input color. Press X if we are Blue and press B if we are red");
+        telemetry.update();
+
+        // Are we blue or red?
+        while (red_or_blue == "not inputed") {
+            if (gamepad1.x){
+                red_or_blue = "Blue";
+            }
+
+            if (gamepad1.b){
+                red_or_blue = "Red";
+            }
+
+        }// finished setting red or blue
+
+        //High or low message
+        telemetry.addLine("Do we want to park up or down? Press the Dpad UP if we should park high and press the Dpad DOWN if we should park low");
+        telemetry.update();
+
+        // Do we want to park high or low?
+        while (up_or_down == "not inputed") {
+            if (gamepad1.dpad_up){
+                up_or_down = "Up";
+            }
+
+            if (gamepad1.dpad_down){
+                up_or_down = "Down";
+            }
+
+        }// finished setting up or down
+
+        //Block number message
+        telemetry.addLine("Which block do we start in? Press X if Block one, Press A if Block Two, Press B if block Three, Press Y if block 4");
+        telemetry.addLine("Remember Block One starts under the building site and so on");
+        telemetry.update();
+
+        // Which block are starting on? Remember that blocks start from the building site down four blocks
+        while (block_num == "not inputed") {
+            if (gamepad1.x){
+                block_num = "1";
+            }
+
+            if (gamepad1.a){
+                block_num = "2";
+            }
+
+            if (gamepad1.b){
+                block_num = "3";
+            }
+
+            if (gamepad1.y){
+                block_num = "4";
+            }
+
+        }// finished setting block num
+
+        telemetry.addLine("Does this look correct?");
+        telemetry.addData("We are on team: ", red_or_blue); // is it set to the right team?
+        telemetry.addData("We want to park: ", up_or_down); // is it set to the disired parking spot?
+        telemetry.addData("We start on block: ", block_num); // is it set to the starting block?
+        telemetry.addLine("Press LEFT_BUMBER to confirm, Press RIGHT_BUMBER to start over");
+        telemetry.update();
+
+        //Confirmation
+        while (confirm == "not inputed") {
+
+            if (gamepad1.left_bumper){
+                confirm = "ready to go!";
+            }
+
+            if (gamepad1.right_bumper){
+                confirm = "reset";
+            }
+
+        }// all set to go
+
+        if (confirm == "reset"){
+
+            //Reset varibles ---------
+
+            // Has the pos_inputed
+            up_or_down = "not inputed";
+
+            // Red or blue?
+            red_or_blue = "not inputed";
+
+            // Which block?
+            block_num = "not inputed";
+
+            // Confirm
+            confirm = "not inputed";
+
+            //Reset varibles ---------
+
+            where_are_we();//reset
+
+        }//resets everything
+
+        telemetry.addLine("Have fun drivers! Remember that is why we do this. Now go kick their ass!");
+        telemetry.update();
+    }
+
+        // drive method
+    public void drive(int inches){
+
+        // target
+        int new_rw_target; //right wheel
+        int new_lw_target; //left wheel
+        // int new_test_target; //use for testing only
+
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+
+            //reset encoder
+            left_motor.setMode(DcMotor.RunMode.RESET_ENCODERS);
+            right_motor.setMode(DcMotor.RunMode.RESET_ENCODERS);
+            //test_motor.setMode(DcMotor.RunMode.RESET_ENCODERS);
+
+
+            //flw target
+            new_lw_target = left_motor.getCurrentPosition() + (int)(inches * counts_per_inch);//gives wheels the motor can use
+            left_motor.setTargetPosition(new_lw_target);
+
+            //frw target
+            new_rw_target = right_motor.getCurrentPosition() + (int)(inches * counts_per_inch);//gives wheels the motor can use
+            right_motor.setTargetPosition(new_rw_target);
+
+            //test target
+            //new_test_target = test_motor.getCurrentPosition() + (int) (inches * counts_per_inch);//gives wheels the motor can use
+            //test_motor.setTargetPosition(new_test_target);
+
+            // Turn On RUN_TO_POSITION
+            left_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            right_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            //test_motor.setMode(DcMotor.RunMode.RESET_ENCODERS);
+
+            //sets power
+            right_motor.setPower(speed);
+            left_motor.setPower(speed);
+            //test_motor.setPower(speed);
+
+            //makes sure the robot is not broken
+            while (opModeIsActive() && (left_motor.isBusy() /* &&  /right_motor.isBusy() */)) {
+
+                telemetry.addLine("Am I working?");
+                telemetry.addData("Speed: ", speed);
+                telemetry.addData("new_lw_target: ", new_lw_target);
+                telemetry.addData("new_rw_target: ", new_rw_target);
+                telemetry.addData("right wheel currently: ", right_motor.getCurrentPosition());
+                telemetry.addData("left wheel currently: ", left_motor.getCurrentPosition());
+                //telemetry.addData("new_test_motor:", test_motor);
+                telemetry.update();
+
+            }//opmode check 2
+
+            // Turn Off RUN_TO_POSITION
+            left_motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            right_motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        }//opmode check 1
+
+    }//end of drive method
+
+    //start of init_gyro
+    public void init_gyro() {
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+
+        parameters.mode = BNO055IMU.SensorMode.IMU; //what sensor is it
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES; // what unit of turn do we use
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC; //what unit of speed to we use
+        parameters.loggingEnabled = false;
+
+        imu = hardwareMap.get(BNO055IMU.class, "imu"); // defines the imu
+
+        imu.initialize(parameters);//start this baby up
+
+    }//end of init_gyro
+
+    public void find_angle(double angle_I_want) {
+
+        boolean finding_angle = true;
+
+        while (finding_angle == true) {
+
+            //finds angles
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+            //The bigger this is the closer it has to be to slow down
+            double multiplier = 1;
+            double angle_diff;
+
+            /*
+            angles.firstAngle = xy plane
+            angles.secondAngle = tilt
+            angles.thirdAngle = roll
+            */
+
+            //correct the angel----------
+
+            if (Math.round(angles.firstAngle) > angle_I_want) {
+
+                //Slows down before finding correct angle to prevent the robot from over shoting it
+                angle_diff = (angles.firstAngle - angle_I_want);
+                turn_drive_speed = Math.min(Math.max((angle_diff * multiplier), turn_top_speed), turn_bottom_speed);
+
+                left_motor.setPower(turn_drive_speed);
+                right_motor.setPower(-turn_drive_speed);
+
+            }
+
+            else if (Math.round(angles.firstAngle) < angle_I_want) {
+
+                //Slows down before finding correct angle to prevent the robot from over shoting it
+                angle_diff = (angle_I_want - angles.firstAngle);
+                turn_drive_speed = Math.min(Math.max((angle_diff * multiplier), turn_top_speed), turn_bottom_speed);
+
+                left_motor.setPower(-turn_drive_speed);
+                right_motor.setPower(turn_drive_speed);
+
+            }
+
+            //correct the angel----------
+
+            else {
+
+                //Tells user the robot found the right angle
+                telemetry.addData("On", "track!!!");
+                telemetry.update();
+
+                //Stops all motion
+                left_motor.setPower(0);
+                right_motor.setPower(0);
+
+                //FOUND ANGLE :)
+                finding_angle = false;
+
+            }
+
+            //Updates user
+            telemetry.addData("First angle is: ", angles.firstAngle);
+            telemetry.addData("Turn speed: ", turn_drive_speed);
+            telemetry.update();
+        }
+
+    }//end of find angle
+
+    
+    //where the actual task happen
+    @Override
+    public void runOpMode() {
+
+        // names the motors
+        left_motor = hardwareMap.dcMotor.get("left_motor");
+        right_motor = hardwareMap.dcMotor.get("right_motor");
+        //test_motor = hardwareMap.dcMotor.get("test");
+
+        // make the motor goes the same way as the left motor
+        left_motor.setDirection(DcMotor.Direction.REVERSE);
+
+        init_gyro();// initialized gyro
+
+        telemetry.addLine("I should park under a bridge");//opening line
+        //telemetry.addData("The number of inches I want to go: ", inches_I_want_to_go);
+        telemetry.addData("The number of turns I want to go: ", amount_of_spins_we_want);
+        telemetry.addData("Starting Speed: ", speed);//starting speed
+
+        telemetry.update();
+
+        where_are_we();// where are we on the feild?
+
+        waitForStart();// wait for the user to press start
+
+        telemetry.addLine("Have a good day user");// thanks the user
+
+        telemetry.update();
+
+    }// end of runOpMode
+
+}// end of public class
