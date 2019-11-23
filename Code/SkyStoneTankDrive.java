@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 //imports
 
 @TeleOp(name = "ShockwaveTankDrive", group = "Shockwave")
-//@Disabled
+@Disabled
 
 public class SkyStoneTankDrive extends OpMode{
 
@@ -25,8 +25,8 @@ public class SkyStoneTankDrive extends OpMode{
     public void init() {
 
         //sets the name the program looks for in the program
-        rightMotor = hardwareMap.dcMotor.get("rightMotor");
-        leftMotor = hardwareMap.dcMotor.get("leftMotor");
+        rightMotor = hardwareMap.dcMotor.get("right_motor");
+        leftMotor = hardwareMap.dcMotor.get("left_motor");
 
         //make the motor goes the same way as the left motor
         rightMotor.setDirection(DcMotor.Direction.REVERSE);
