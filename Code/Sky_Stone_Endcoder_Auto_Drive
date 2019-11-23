@@ -25,6 +25,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
+    // Version number
+    static double version_number = 1.3;
+
     // Variables --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Defining the wheels there motors
@@ -52,11 +55,6 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
     // Speed
     static final double speed = 0.25;
 
-    // How many times should this spin
-    static int amount_of_spins_we_want = 4;
-    static int how_turns_in_a_spin = 4;
-    static int amount_of_spins_so_far = 0;
-
     // Speed stats for turning
     static double turn_drive_speed = 0.5;
     static double turn_top_speed = 0.5;
@@ -74,12 +72,16 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
     // Confirm
     static String confirm = "not inputed";
 
+    // How many inches from the wall should the robot go if aimming low on the bridge
+    static int pull_away_inches = 4;
+
     // Variables --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //where are we
     public void where_are_we() {
 
         //Color message
+        telemetry.addData("Hello drivers, this is the autonomous parking program version", version_number); // what version is this?
         telemetry.addLine("Please input color. Press X if we are Blue and press B if we are red");
         telemetry.update();
 
@@ -178,11 +180,11 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
         }//resets everything
 
-        telemetry.addLine("Have fun drivers! Remember that is why we do this. Now go kick their ass!");
+        telemetry.addLine("Have fun drivers! Remember that is why we do this. Now go kick their butt!");
         telemetry.update();
     }
 
-        // drive method
+    // drive method
     public void drive(int inches){
 
         // target
@@ -258,7 +260,7 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
     }//end of init_gyro
 
-    public void find_angle(double angle_I_want) {
+    public void angle_turn(double angle_I_want) {
 
         boolean finding_angle = true;
 
@@ -279,7 +281,7 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
             //correct the angel----------
 
-            if (Math.round(angles.firstAngle) > angle_I_want) {
+            if (Math.round(angles.firstAngle) - tolerance > angle_I_want) {
 
                 //Slows down before finding correct angle to prevent the robot from over shoting it
                 angle_diff = (angles.firstAngle - angle_I_want);
@@ -290,7 +292,7 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
             }
 
-            else if (Math.round(angles.firstAngle) < angle_I_want) {
+            else if (Math.round(angles.firstAngle) + tolerance < angle_I_want) {
 
                 //Slows down before finding correct angle to prevent the robot from over shoting it
                 angle_diff = (angle_I_want - angles.firstAngle);
@@ -319,7 +321,7 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
             }
 
             //Updates user
-            telemetry.addData("First angle is: ", angles.firstAngle);
+            telemetry.addData("First angle is: ", Math.round(angles.firstAngle));
             telemetry.addData("Turn speed: ", turn_drive_speed);
             telemetry.update();
         }
@@ -336,21 +338,242 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
         right_motor = hardwareMap.dcMotor.get("right_motor");
         //test_motor = hardwareMap.dcMotor.get("test");
 
+        //reset varibles -----------------------------------------------------------------------------
+
+        // Has the pos_inputed
+        up_or_down = "not inputed";
+
+        // Red or blue?
+        red_or_blue = "not inputed";
+
+        // Which block?
+        block_num = "not inputed";
+
+        // Confirm
+        confirm = "not inputed";
+
+        //reset varibles -----------------------------------------------------------------------------
+
         // make the motor goes the same way as the left motor
         left_motor.setDirection(DcMotor.Direction.REVERSE);
 
         init_gyro();// initialized gyro
 
-        telemetry.addLine("I should park under a bridge");//opening line
-        //telemetry.addData("The number of inches I want to go: ", inches_I_want_to_go);
-        telemetry.addData("The number of turns I want to go: ", amount_of_spins_we_want);
-        telemetry.addData("Starting Speed: ", speed);//starting speed
-
-        telemetry.update();
-
-        where_are_we();// where are we on the feild?
+        where_are_we();// where are we on the field?
 
         waitForStart();// wait for the user to press start
+
+        // BLUE ------------------------------------------------------------------------------------------
+
+        if (red_or_blue == "Blue"){
+
+            // UP -----------------------------------------------
+
+            if (up_or_down == "Up"){
+
+                if (block_num == "1"){
+
+                    drive(24);
+
+                    angle_turn(-90);
+
+                    drive(38);
+
+                }// first block
+
+                if (block_num == "2"){
+
+                    drive(24);
+
+                    angle_turn(-90);
+
+                    drive(15);
+
+                } // second block
+
+                if (block_num == "3"){
+
+                    drive(24);
+
+                    angle_turn(90);
+
+                    drive(15);
+
+                } // third block
+
+                if (block_num == "4"){
+
+                    drive(24);
+
+                    angle_turn(90);
+
+                    drive(38);
+
+                } // forth block
+
+
+            }// if up
+
+            // UP -----------------------------------------------
+
+            // DOWN ---------------------------------------------
+
+            if (up_or_down == "Down"){
+
+                if (block_num == "1"){
+
+                    drive(pull_away_inches);
+
+                    angle_turn(-90);
+
+                    drive(38);
+
+                }// first block
+
+                if (block_num == "2"){
+
+                    drive(pull_away_inches);
+
+                    angle_turn(-90);
+
+                    drive(15);
+
+                } // second block
+
+                if (block_num == "3"){
+
+                    drive(pull_away_inches);
+
+                    angle_turn(90);
+
+                    drive(15);
+
+                } // third block
+
+                if (block_num == "4"){
+
+                    drive(pull_away_inches);
+
+                    angle_turn(90);
+
+                    drive(38);
+
+                } // forth block
+
+
+            }// if down
+
+            // DOWN ---------------------------------------------
+
+        }// if blue
+
+        // BLUE ------------------------------------------------------------------------------------------
+
+        // RED ------------------------------------------------------------------------------------------
+
+        if (red_or_blue == "Red"){
+
+            // UP -----------------------------------------------
+
+            if (up_or_down == "Up"){
+
+                if (block_num == "1"){
+
+                    drive(24);
+
+                    angle_turn(90);
+
+                    drive(38);
+
+                }// first block
+
+                if (block_num == "2"){
+
+                    drive(24);
+
+                    angle_turn(90);
+
+                    drive(15);
+
+                } // second block
+
+                if (block_num == "3"){
+
+                    drive(24);
+
+                    angle_turn(-90);
+
+                    drive(15);
+
+                } // third block
+
+                if (block_num == "4"){
+
+                    drive(24);
+
+                    angle_turn(-90);
+
+                    drive(38);
+
+                } // forth block
+
+
+            }// if up
+
+            // UP -----------------------------------------------
+
+            // DOWN ---------------------------------------------
+
+            if (up_or_down == "Down"){
+
+                if (block_num == "1"){
+
+                    drive(pull_away_inches);
+
+                    angle_turn(90);
+
+                    drive(38);
+
+                }// first block
+
+                if (block_num == "2"){
+
+                    drive(pull_away_inches);
+
+                    angle_turn(90);
+
+                    drive(15);
+
+                } // second block
+
+                if (block_num == "3"){
+
+                    drive(pull_away_inches);
+
+                    angle_turn(-90);
+
+                    drive(15);
+
+                } // third block
+
+                if (block_num == "4"){
+
+                    drive(pull_away_inches);
+
+                    angle_turn(-90);
+
+                    drive(38);
+
+                } // forth block
+
+
+            }// if down
+
+            // DOWN ---------------------------------------------
+
+        }// if RED
+
+        // RED ------------------------------------------------------------------------------------------
 
         telemetry.addLine("Have a good day user");// thanks the user
 
