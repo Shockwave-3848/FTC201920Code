@@ -5,6 +5,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 import java.lang.Math;
 
 
@@ -16,6 +19,10 @@ public class vuforiaNav extends LinearOpMode {
     double                  power = 0.25;
 
     String mode = "Find Target";
+
+    boolean firstBlock;
+    boolean secondBlock;
+
 
     //double[] desiredLocation = {-50.0f, 30.0f};
     //double desiredYaw;
@@ -38,35 +45,43 @@ public class vuforiaNav extends LinearOpMode {
 
         //ConceptVuforiaSkyStoneNavigation vuforiaNavication = new ConceptVuforiaSkyStoneNavigation(hardwareMap);
 
-        ConceptTensorFlowObjectDetection objectDetection = new ConceptTensorFlowObjectDetection(hardwareMap);
+        //ConceptTensorFlowObjectDetection objectDetection = new ConceptTensorFlowObjectDetection(hardwareMap);
+
+        SensorREVColor ColorSensor = new SensorREVColor(hardwareMap);
 
         Encoder encoderDrive = new Encoder();
 
         waitForStart();
 
-        runtime.reset();
-        while(runtime.seconds() < 2.5){
-            objectDetection.updatTfod();
+        firstBlock = ColorSensor.isYellow();
+
+
+        encoderDrive.drive(-10, leftDrive, rightDrive);
+
+
+        internalGyro.turnDegrees(90, leftDrive, rightDrive);
+
+
+        encoderDrive.drive(14, leftDrive, rightDrive);
+
+        internalGyro.turnDegrees(-90, leftDrive, rightDrive);
+
+        encoderDrive.drive(12, leftDrive, rightDrive);
+
+        while (ColorSensor.getDistance() > 7 || ColorSensor.getDistance() == DistanceUnit.infinity){
+            leftDrive.setPower(0.2);
+            rightDrive.setPower(0.2);
         }
+        leftDrive.setPower(0);
+        rightDrive.setPower(0);
 
 
+        secondBlock = ColorSensor.isYellow();
 
-        turnDegrees(90, internalGyro);
-
-
-        encoderDrive.drive(8, leftDrive, rightDrive);
-
-        turnDegrees(-90, internalGyro);
-
-        objectDetection.location = 2;
-
-        runtime.reset();
-        while(runtime.seconds() < 2.5){
-            objectDetection.updatTfod();
-        }
-
-        if (objectDetection.firstBlock == 0 || objectDetection.firstBlock == 1 ){
-            if (objectDetection.secondBlock == 0 || objectDetection.secondBlock == 1 ) {
+        telemetry.addData("firstBlock", firstBlock);
+        telemetry.addData("secondBlock", secondBlock);
+        if (firstBlock){
+            if (secondBlock) {
                 telemetry.addData("Skystone", 3);
             } else {
                 telemetry.addData("Skystone", 2);
@@ -74,11 +89,11 @@ public class vuforiaNav extends LinearOpMode {
         } else {
             telemetry.addData("Skystone", 1);
         }
+
+        telemetry.addData("Distance", ColorSensor.getDistance());
+
         telemetry.update();
-
-        objectDetection.shutDown();
-
-        while(true){}
+        while(opModeIsActive()){}
 
         // My code
         // currentXLocation
@@ -144,34 +159,6 @@ public class vuforiaNav extends LinearOpMode {
         vuforiaNavication.deactivateVuforia();
 
          */
-    }
-
-    public void turnDegrees(int degreesToTurn, GyroTurn internalGyro){
-        PIDController           pidRotate;
-        internalGyro.globalAngle = 0;
-
-        pidRotate = new PIDController(0.01, 0.0, 0.01);
-        pidRotate.reset();
-        pidRotate.setSetpoint(degreesToTurn);
-        pidRotate.setInputRange(-180, 180);
-        pidRotate.setOutputRange(0, 1);
-        pidRotate.setTolerance(5);
-        pidRotate.enable();
-
-        //while (!pidRotate.onTarget()){
-        while(!(internalGyro.globalAngle <= degreesToTurn + 0.25 && internalGyro.globalAngle >= degreesToTurn - 0.25)){
-            internalGyro.getAngle();
-            telemetry.addData("Angle", internalGyro.globalAngle);
-            power = pidRotate.performPID(internalGyro.globalAngle); // power will be - on right turn.
-
-            leftDrive.setPower(power);
-            rightDrive.setPower(-power);
-
-            telemetry.addData("Power", power);
-            telemetry.update();
-        }
-        telemetry.addLine("donw");
-        telemetry.update();
     }
 
     public double updateDesiredLocation(double wantedX, double wantedY, double currentX, double currentY){

@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.lang.Math;
 
@@ -13,22 +14,25 @@ import java.lang.Math;
 //@Autonomous(name="Encoder", group ="Concept")
 //@Disabled
 public class Encoder {
-    static double                  startPower = 0.25;
-    /* for compitition robot
-    final double            HD_MOTOR_TICK_COUNT = 30;
+    static double                  maxTime = 2.5;
+    static double                  startPower;
+    // for compitition robot
+    static final double            HD_MOTOR_TICK_COUNT = 30;
 
-    double                  gearRatio = 15;
-    double                  wheelDiamiter = 3.54;
-    */
+    static double                  gearRatio = 15;
+    static double                  wheelDiamiter = 3.54;
+    /*
 
     static final double            HD_MOTOR_TICK_COUNT = 4;
 
     static double                  gearRatio = 72;
     static double                  wheelDiamiter = 3.54;
-
+*/
     static int                     ticksPerInch = (int) ((HD_MOTOR_TICK_COUNT * gearRatio) / (wheelDiamiter * Math.PI));
 
     public static void drive(float inchsToRole, DcMotor leftDrive, DcMotor rightDrive) {
+        ElapsedTime runtime = new ElapsedTime();
+        startPower = 1.0;
 
         leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -45,7 +49,8 @@ public class Encoder {
         leftDrive.setPower(startPower);
         rightDrive.setPower(startPower);
 
-        while(leftDrive.isBusy() && rightDrive.isBusy()){}
+        runtime.reset();
+        while((leftDrive.isBusy() && rightDrive.isBusy()) && !(leftDrive.getPower() < 0.1 && rightDrive.getPower() < 0.1 ) && (runtime.seconds() < maxTime)){};
 
         leftDrive.setPower(0);
         rightDrive.setPower(0);
