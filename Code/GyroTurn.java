@@ -61,7 +61,7 @@ public class GyroTurn
         lastAngles = angles;
     }
 
-    public void turnDegrees(int degreesToTurn, DcMotor leftDrive, DcMotor rightDrive){
+    public void turnDegrees(double degreesToTurn, DcMotor leftDrive, DcMotor rightDrive){
         ElapsedTime runtime = new ElapsedTime();
         double power = 0.25;
         PIDController           pidRotate;
@@ -72,7 +72,7 @@ public class GyroTurn
         pidRotate.reset();
         pidRotate.setSetpoint(degreesToTurn);
         pidRotate.setInputRange(-180, 180);
-        pidRotate.setOutputRange(0, 1);
+        pidRotate.setOutputRange(0, 0.5);
         pidRotate.setTolerance(1);
         pidRotate.enable();
 
@@ -84,5 +84,7 @@ public class GyroTurn
             leftDrive.setPower(power);
             rightDrive.setPower(-power);
         }
+        leftDrive.setPower(0);
+        rightDrive.setPower(0);
     }
 }

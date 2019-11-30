@@ -24,8 +24,8 @@ public class vuforiaNav extends LinearOpMode {
     boolean secondBlock;
 
 
-    //double[] desiredLocation = {-50.0f, 30.0f};
-    //double desiredYaw;
+    double[] desiredLocation = {-50.0f, 30.0f};
+    double desiredYaw;
 
     ElapsedTime     runtime = new ElapsedTime();
     @Override public void runOpMode() {
@@ -40,40 +40,35 @@ public class vuforiaNav extends LinearOpMode {
         try {
             internalGyro.initGyro(hardwareMap);
         } catch (InterruptedException e) {
-            telemetry.addLine("Something went wrong");
+            telemetry.addLine("Something went wrong w/ gyro");
         }
 
-        //ConceptVuforiaSkyStoneNavigation vuforiaNavication = new ConceptVuforiaSkyStoneNavigation(hardwareMap);
+        ConceptVuforiaSkyStoneNavigation vuforiaNavication = new ConceptVuforiaSkyStoneNavigation(hardwareMap);
 
-        //ConceptTensorFlowObjectDetection objectDetection = new ConceptTensorFlowObjectDetection(hardwareMap);
 
-        SensorREVColor ColorSensor = new SensorREVColor(hardwareMap);
 
         Encoder encoderDrive = new Encoder();
+        /*
+        SensorREVColor ColorSensor = new SensorREVColor(hardwareMap);
 
         waitForStart();
 
-        firstBlock = ColorSensor.isYellow();
+        encoderDrive.drivePID(20, leftDrive, rightDrive, -1);
 
-
-        encoderDrive.drive(-10, leftDrive, rightDrive);
-
-
-        internalGyro.turnDegrees(90, leftDrive, rightDrive);
-
-
-        encoderDrive.drive(14, leftDrive, rightDrive);
+        runtime.reset();
+        while(runtime.seconds() < 1){};
 
         internalGyro.turnDegrees(-90, leftDrive, rightDrive);
 
-        encoderDrive.drive(12, leftDrive, rightDrive);
+        firstBlock = ColorSensor.isYellow();
 
-        while (ColorSensor.getDistance() > 7 || ColorSensor.getDistance() == DistanceUnit.infinity){
-            leftDrive.setPower(0.2);
-            rightDrive.setPower(0.2);
-        }
-        leftDrive.setPower(0);
-        rightDrive.setPower(0);
+        runtime.reset();
+        while(runtime.seconds() < 1){};
+
+
+        encoderDrive.drivePID(4, leftDrive, rightDrive, 1);
+
+        secondBlock = ColorSensor.isYellow();
 
 
         secondBlock = ColorSensor.isYellow();
@@ -89,11 +84,13 @@ public class vuforiaNav extends LinearOpMode {
         } else {
             telemetry.addData("Skystone", 1);
         }
-
-        telemetry.addData("Distance", ColorSensor.getDistance());
-
         telemetry.update();
+
+        //telemetry.addData("Distance", ColorSensor.getDistance());
+
+        //telemetry.update();
         while(opModeIsActive()){}
+        */
 
         // My code
         // currentXLocation
@@ -109,7 +106,7 @@ public class vuforiaNav extends LinearOpMode {
         //    vuforiaNavication.currentXLocation;
         //    vuforiaNavication.currentYLocation;
         //    vuforiaNavication.currentVuforiaYaw;
-        /*while (!isStopRequested()) {
+        while (!isStopRequested()) {
 
 
             vuforiaNavication.updateVuforia();
@@ -130,6 +127,8 @@ public class vuforiaNav extends LinearOpMode {
                 internalGyro.globalAngle = vuforiaNavication.currentVuforiaYaw;
                 mode = "Turn to Target";
             } else if (mode == "Turn to Target"){
+                internalGyro.turnDegrees(desiredYaw, leftDrive, rightDrive);
+                /*
                 if (internalGyro.globalAngle > desiredYaw - 2 && internalGyro.globalAngle < desiredYaw + 2){
                     mode = "Drive to target";
                 }
@@ -142,7 +141,12 @@ public class vuforiaNav extends LinearOpMode {
                     //leftDrive.setPower(0.15);
                     //rightDrive.setPower(-0.15);
                 }
+                */
+
             } else if (mode == "Drive to target"){
+
+                encoderDrive.drivePID(Math.sqrt(Math.pow(vuforiaNavication.currentXLocation - desiredLocation[0], 2) + Math.pow(vuforiaNavication.currentYLocation - desiredLocation[1], 2)), leftDrive, rightDrive, 1);
+
                 telemetry.addData("curentPower", "Forward");
                 //leftDrive.setPower(0);
                 //rightDrive.setPower(0);
@@ -157,8 +161,6 @@ public class vuforiaNav extends LinearOpMode {
 
         }
         vuforiaNavication.deactivateVuforia();
-
-         */
     }
 
     public double updateDesiredLocation(double wantedX, double wantedY, double currentX, double currentY){
