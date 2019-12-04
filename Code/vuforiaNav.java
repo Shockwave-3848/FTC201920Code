@@ -24,7 +24,7 @@ public class vuforiaNav extends LinearOpMode {
     boolean secondBlock;
 
 
-    double[] desiredLocation = {-50.0f, 30.0f};
+    double[] desiredLocation = {-60.0f, 35.0f};
     double desiredYaw;
 
     ElapsedTime     runtime = new ElapsedTime();
@@ -112,42 +112,34 @@ public class vuforiaNav extends LinearOpMode {
             vuforiaNavication.updateVuforia();
             internalGyro.getAngle();
 
-            //desiredYaw = updateDesiredLocation(desiredLocation[0], desiredLocation[1], vuforiaNavication.currentXLocation, vuforiaNavication.currentYLocation);
-
-
             if (mode == "Find Target"){
-                //leftDrive.setPower(0.15);
-                //rightDrive.setPower(-0.15);
+                runtime.reset();
+                while(runtime.seconds() < 0.2){};
                 telemetry.addData("curentPower", "turn right");
-                if (vuforiaNavication.targetVisible){
+                if (vuforiaNavication.targetVisible) {
                     mode = "Find Angle";
+                } else {
+                    internalGyro.turnDegrees(40, leftDrive, rightDrive);
                 }
             } else if (mode == "Find Angle") {
                 desiredYaw = updateDesiredLocation(desiredLocation[0], desiredLocation[1], vuforiaNavication.currentXLocation, vuforiaNavication.currentYLocation);
+                telemetry.addData("X", vuforiaNavication.currentXLocation);
+                telemetry.addData("Y", vuforiaNavication.currentYLocation);
+                telemetry.update();
                 internalGyro.globalAngle = vuforiaNavication.currentVuforiaYaw;
+                runtime.reset();
+                while(runtime.seconds() < 20){};
                 mode = "Turn to Target";
             } else if (mode == "Turn to Target"){
                 internalGyro.turnDegrees(desiredYaw, leftDrive, rightDrive);
-                /*
-                if (internalGyro.globalAngle > desiredYaw - 2 && internalGyro.globalAngle < desiredYaw + 2){
-                    mode = "Drive to target";
-                }
-                else if (desiredYaw > internalGyro.globalAngle) {
-                    //leftDrive.setPower(-0.15);
-                    //rightDrive.setPower(0.15);
-                    telemetry.addData("curentPower", "turn left");
-                } else if (desiredYaw < internalGyro.globalAngle) {
-                    telemetry.addData("curentPower", "turn right");
-                    //leftDrive.setPower(0.15);
-                    //rightDrive.setPower(-0.15);
-                }
-                */
+                mode = "Drive to target";
 
             } else if (mode == "Drive to target"){
 
                 encoderDrive.drivePID(Math.sqrt(Math.pow(vuforiaNavication.currentXLocation - desiredLocation[0], 2) + Math.pow(vuforiaNavication.currentYLocation - desiredLocation[1], 2)), leftDrive, rightDrive, 1);
 
                 telemetry.addData("curentPower", "Forward");
+                mode = "Done";
                 //leftDrive.setPower(0);
                 //rightDrive.setPower(0);
             }
