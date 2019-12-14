@@ -85,8 +85,10 @@ public class SensorREVColor {
      * to the target object.
      *
      */
-    ColorSensor sensorColor;
-    DistanceSensor sensorDistance;
+    ColorSensor sensorColor1;
+    DistanceSensor sensorDistance1;
+    ColorSensor sensorColor2;
+    DistanceSensor sensorDistance2;
     final double SCALE_FACTOR = 255;
     float hsvValues[] = {0F, 0F, 0F};
     final float values[] = hsvValues;
@@ -94,17 +96,29 @@ public class SensorREVColor {
     SensorREVColor(HardwareMap hardwareMap) {
 
         // get a reference to the color sensor.
-        sensorColor = hardwareMap.get(ColorSensor.class, "sensor_color_distance");
+        sensorColor1 = hardwareMap.get(ColorSensor.class, "cd1");
 
         // get a reference to the distance sensor that shares the same name.
-        sensorDistance = hardwareMap.get(DistanceSensor.class, "sensor_color_distance");
+        sensorDistance1 = hardwareMap.get(DistanceSensor.class, "cd1");
 
+
+        // get a reference to the color sensor.
+        sensorColor2 = hardwareMap.get(ColorSensor.class, "cd2");
+
+        // get a reference to the distance sensor that shares the same name.
+        sensorDistance2 = hardwareMap.get(DistanceSensor.class, "cd2");
     }
 
         // loop and read the RGB and distance data.
         // Note we use opModeIsActive() as our loop condition because it is an interruptible method.
         //while (opModeIsActive()) {
-    public boolean isYellow(){
+    public boolean isYellow(boolean useOne){
+        ColorSensor sensorColor;
+        if (useOne){
+            sensorColor = sensorColor1;
+        } else {
+            sensorColor = sensorColor2;
+        }
         int[] allOutputs = new int[10];
         for (int i = 0; i < allOutputs.length; i++) {
             // convert the RGB values to HSV values.
@@ -149,7 +163,11 @@ public class SensorREVColor {
 
     }
 
-    public double getDistance(){
-        return sensorDistance.getDistance(DistanceUnit.CM);
+    public double getDistanceOne(){
+        return sensorDistance1.getDistance(DistanceUnit.CM);
+    }
+
+    public double getDistanceTwo(){
+        return sensorDistance2.getDistance(DistanceUnit.CM);
     }
 }

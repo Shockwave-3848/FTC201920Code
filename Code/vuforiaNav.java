@@ -12,7 +12,7 @@ import java.lang.Math;
 
 
 @Autonomous(name="SKYSTONE Vuforia Nav", group ="Concept")
-//@Disabled
+@Disabled
 public class vuforiaNav extends LinearOpMode {
     private DcMotor leftDrive = null;
     private DcMotor rightDrive = null;
@@ -43,43 +43,45 @@ public class vuforiaNav extends LinearOpMode {
             telemetry.addLine("Something went wrong w/ gyro");
         }
 
-        ConceptVuforiaSkyStoneNavigation vuforiaNavication = new ConceptVuforiaSkyStoneNavigation(hardwareMap);
+        //ConceptVuforiaSkyStoneNavigation vuforiaNavication = new ConceptVuforiaSkyStoneNavigation(hardwareMap);
 
 
 
         Encoder encoderDrive = new Encoder();
-        /*
+
         SensorREVColor ColorSensor = new SensorREVColor(hardwareMap);
 
         waitForStart();
 
-        encoderDrive.drivePID(20, leftDrive, rightDrive, -1);
+        encoderDrive.drivePID(20, leftDrive, rightDrive, 1, 1);
+        /*
+        while(!(ColorSensor.getDistanceOne() < 15)){
+            leftDrive.setPower(0.25);
+            rightDrive.setPower(0.25);
+            telemetry.addLine("Inside");
+            telemetry.update();
+        }
+        leftDrive.setPower(0);
+        rightDrive.setPower(0);
+        */
+        // 1 inch = 2.75 cm
 
-        runtime.reset();
-        while(runtime.seconds() < 1){};
+        for (int i = 0; i < 3; i++) {
+            encoderDrive.drivePID(2.75 * (ColorSensor.getDistanceOne() - 18), leftDrive, rightDrive, 1, 1);
+        }
 
-        internalGyro.turnDegrees(-90, leftDrive, rightDrive);
+        firstBlock = ColorSensor.isYellow(true);
 
-        firstBlock = ColorSensor.isYellow();
+        secondBlock = ColorSensor.isYellow(false);
 
-        runtime.reset();
-        while(runtime.seconds() < 1){};
-
-
-        encoderDrive.drivePID(4, leftDrive, rightDrive, 1);
-
-        secondBlock = ColorSensor.isYellow();
-
-
-        secondBlock = ColorSensor.isYellow();
 
         telemetry.addData("firstBlock", firstBlock);
         telemetry.addData("secondBlock", secondBlock);
         if (firstBlock){
             if (secondBlock) {
-                telemetry.addData("Skystone", 3);
-            } else {
                 telemetry.addData("Skystone", 2);
+            } else {
+                telemetry.addData("Skystone", 3);
             }
         } else {
             telemetry.addData("Skystone", 1);
@@ -90,7 +92,7 @@ public class vuforiaNav extends LinearOpMode {
 
         //telemetry.update();
         while(opModeIsActive()){}
-        */
+        /*
 
         // My code
         // currentXLocation
@@ -136,7 +138,7 @@ public class vuforiaNav extends LinearOpMode {
 
             } else if (mode == "Drive to target"){
 
-                encoderDrive.drivePID(Math.sqrt(Math.pow(vuforiaNavication.currentXLocation - desiredLocation[0], 2) + Math.pow(vuforiaNavication.currentYLocation - desiredLocation[1], 2)), leftDrive, rightDrive, 1);
+                encoderDrive.drivePID(Math.sqrt(Math.pow(vuforiaNavication.currentXLocation - desiredLocation[0], 2) + Math.pow(vuforiaNavication.currentYLocation - desiredLocation[1], 2)), leftDrive, rightDrive, 1, 1);
 
                 telemetry.addData("curentPower", "Forward");
                 mode = "Done";
@@ -153,6 +155,8 @@ public class vuforiaNav extends LinearOpMode {
 
         }
         vuforiaNavication.deactivateVuforia();
+
+         */
     }
 
     public double updateDesiredLocation(double wantedX, double wantedY, double currentX, double currentY){

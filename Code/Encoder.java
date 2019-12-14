@@ -14,13 +14,13 @@ import java.lang.Math;
 //@Autonomous(name="Encoder", group ="Concept")
 //@Disabled
 public class Encoder {
-    static double                  maxTime = 2.5;
-    static double                  startPower;
+    double                  maxTime = 2.5;
+    double                  startPower;
     // for compitition robot
-    static final double            HD_MOTOR_TICK_COUNT = 30;
+    final double            HD_MOTOR_TICK_COUNT = 30;
 
-    static double                  gearRatio = 15;
-    static double                  wheelDiamiter = 3.54;
+    double                  gearRatio = 15;
+    double                  wheelDiamiter = 3.54;
     /*
 
     static final double            HD_MOTOR_TICK_COUNT = 4;
@@ -28,9 +28,17 @@ public class Encoder {
     static double                  gearRatio = 72;
     static double                  wheelDiamiter = 3.54;
 */
-    static int                     ticksPerInch = (int) ((HD_MOTOR_TICK_COUNT * gearRatio) / (wheelDiamiter * Math.PI));
+    int                     ticksPerInch;
 
-    public static void driveNormal(float inchsToRole, DcMotor leftDrive, DcMotor rightDrive) {
+    Encoder(){
+        updateTickCount();
+    }
+
+    public void updateTickCount(){
+        ticksPerInch = (int) ((HD_MOTOR_TICK_COUNT * gearRatio) / (wheelDiamiter * Math.PI));
+    }
+
+    public void driveNormal(double inchsToRole, DcMotor leftDrive, DcMotor rightDrive, int driveForwardLeft, int driveForwardRight) {
         ElapsedTime runtime = new ElapsedTime();
         startPower = 1.0;
 
@@ -39,8 +47,8 @@ public class Encoder {
 
 
         int ticksToMove = (int) inchsToRole * ticksPerInch;
-        leftDrive.setTargetPosition(ticksToMove + leftDrive.getCurrentPosition());
-        rightDrive.setTargetPosition(ticksToMove + rightDrive.getCurrentPosition());
+        leftDrive.setTargetPosition((ticksToMove + leftDrive.getCurrentPosition()) * driveForwardLeft);
+        rightDrive.setTargetPosition((ticksToMove + rightDrive.getCurrentPosition()) * driveForwardRight);
 
 
         leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -60,7 +68,7 @@ public class Encoder {
         rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    public static void drivePID(double inchsToRole, DcMotor leftDrive, DcMotor rightDrive, int driveForward) {
+    public void drivePID(double inchsToRole, DcMotor leftDrive, DcMotor rightDrive, int driveForwardLeft, int driveForwardRight) {
         ElapsedTime runtime = new ElapsedTime();
         startPower = 0.5;
         maxTime = 5;
@@ -71,22 +79,32 @@ public class Encoder {
 
 
         int ticksToMove = (int) inchsToRole * ticksPerInch;
-        leftDrive.setTargetPosition(ticksToMove + leftDrive.getCurrentPosition());
-        rightDrive.setTargetPosition(ticksToMove + rightDrive.getCurrentPosition());
+        int halfsToMove = (int) Math.floor(ticksToMove/(HD_MOTOR_TICK_COUNT/2));
+
+        for (int i = 0; i < halfsToMove + 1; i++) {
+
+            if (i != halfsToMove){
+                leftDrive.setTargetPosition((int)(HD_MOTOR_TICK_COUNT/2) + leftDrive.getCurrentPosition());
+                rightDrive.setTargetPosition((int)(HD_MOTOR_TICK_COUNT/2) + rightDrive.getCurrentPosition());
+            } else {
+                leftDrive.setTargetPosition(ticksToMove - ((int)(HD_MOTOR_TICK_COUNT/2) * halfsToMove) + leftDrive.getCurrentPosition());
+                rightDrive.setTargetPosition(ticksToMove - ((int)(HD_MOTOR_TICK_COUNT/2) * halfsToMove)+ rightDrive.getCurrentPosition() );
+            }
 
 
-        leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        leftDrive.setPower(driveForward * startPower);
-        rightDrive.setPower(driveForward * startPower);
+            leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        runtime.reset();
-        while(((leftDrive.getCurrentPosition() * driveForward) < ticksToMove + tolerance)
-                && ((rightDrive.getCurrentPosition() * driveForward) < ticksToMove + tolerance)
-                && (runtime.seconds() < maxTime))
-        {};
+            leftDrive.setPower(driveForwardLeft * startPower);
+            rightDrive.setPower(driveForwardRight * startPower);
 
+            runtime.reset();
+            while (((leftDrive.getCurrentPosition() * driveForwardLeft) < (int)(HD_MOTOR_TICK_COUNT/2) + tolerance)
+                    && ((rightDrive.getCurrentPosition() * driveForwardRight) < (int)(HD_MOTOR_TICK_COUNT/2) + tolerance)
+                    && (runtime.seconds() < maxTime)) {
+            }
+        }
         leftDrive.setPower(0);
         rightDrive.setPower(0);
 
