@@ -2,58 +2,51 @@ package org.firstinspires.ftc.teamcode;
 
 //imports
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
-import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.Range;
-import org.firstinspires.ftc.robotcore.external.Func;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 //imports
 
-@Autonomous(name="Sky_Stone_Endcoder_Auto_Driver", group="Shockwave")
+@Autonomous(name="Sky_Stone_Endcoder_Auto_Drive", group="Shockwave")
 //@Disabled
 
+//name of class
 public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
     // Version number
-    static double version_number = 1.5;
+    static double version_number = 3.9;
 
     // Variables --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Defining the wheels there motors
     DcMotor left_motor;
     DcMotor right_motor;
-    DcMotor test_motor;
 
-    // Defining the IMU sensor object
+    // Defining the IMU sensor object=
     BNO055IMU imu;
 
     // Used for IMU turning
     Orientation angles;
-    Acceleration gravity;
-    double globalAngle = 0;
 
     // A little forgiveness for the robot's turning
     static double tolerance = 0;
 
     // Wheel stats
-    static final int motor_revcount = 30; //28 ticks per rotation for a 15:1 motor //4 ticks at output for core hex motor (72:1)
+    static final int motor_revcount = 28; //28 ticks per rotation for a 15:1 motor //4 ticks at output for core hex motor (72:1)
     static final int gear_ratio = 15;
     static final double wheel_diameter = 3.54;
     static final double counts_per_inch = (motor_revcount * gear_ratio) / (wheel_diameter * Math.PI);
 
     // Speed
-    static final double speed = 0.25;
+    static final double speed = 0.20;
 
     // Speed stats for turning
     static double turn_drive_speed = 0.5;
@@ -75,12 +68,12 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
     // Confirm
     static String confirm = "not inputed";
 
-    // How many inches from the wall should the robot go if aimming low on the bridge
+    // How many inches from the wall should the robot go if aiming low on the bridge
     static int pull_away_inches = 4;
 
     // Variables --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    //where are we
+    // where are we
     public void where_are_we() {
 
         telemetry.addData("Hello drivers, this is the autonomous parking program version", version_number); // what version is this?
@@ -118,7 +111,7 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
         }// finished setting red or blue
 
-        //High or low message
+        // High or low message
         telemetry.addLine("Do we want to park up or down? Press the Dpad UP if we should park high and press the Dpad DOWN if we should park low");
         telemetry.update();
 
@@ -134,7 +127,7 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
         }// finished setting up or down
 
-        //Block number message
+        // Block number message
         telemetry.addLine("Which block do we start in?");
         telemetry.addLine("Press X if Block One");
         telemetry.addLine("Press A if Block Two");
@@ -225,8 +218,8 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
         if (opModeIsActive()) {
 
             //reset encoder
-            left_motor.setMode(DcMotor.RunMode.RESET_ENCODERS);
-            right_motor.setMode(DcMotor.RunMode.RESET_ENCODERS);
+            left_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            right_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             //test_motor.setMode(DcMotor.RunMode.RESET_ENCODERS);
 
             //flw target
@@ -241,25 +234,24 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
             //new_test_target = test_motor.getCurrentPosition() + (int) (inches * counts_per_inch);//gives wheels the motor can use
             //test_motor.setTargetPosition(new_test_target);
 
+            //sets power
+            right_motor.setPower(speed);
+            left_motor.setPower(speed);
+
             // Turn On RUN_TO_POSITION
             left_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             right_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             //test_motor.setMode(DcMotor.RunMode.RESET_ENCODERS);
 
-            //sets power
-            right_motor.setPower(speed);
-            left_motor.setPower(speed);
-            //test_motor.setPower(speed);
-
             //makes sure the robot is not broken
-            while (opModeIsActive() && (left_motor.isBusy() /* &&  /right_motor.isBusy() */)) {
+            while (opModeIsActive() && (left_motor.isBusy() || right_motor.isBusy())) {
 
                 telemetry.addLine("Am I working?");
-                telemetry.addData("Speed: ", speed);
-                telemetry.addData("new_lw_target: ", new_lw_target);
-                telemetry.addData("new_rw_target: ", new_rw_target);
-                telemetry.addData("right wheel currently: ", right_motor.getCurrentPosition());
-                telemetry.addData("left wheel currently: ", left_motor.getCurrentPosition());
+                telemetry.addData("Speed", speed);
+                telemetry.addData("new_lw_target", new_lw_target);
+                telemetry.addData("new_rw_target", new_rw_target);
+                telemetry.addData("right wheel currently", right_motor.getCurrentPosition());
+                telemetry.addData("left wheel currently", left_motor.getCurrentPosition());
                 //telemetry.addData("new_test_motor:", test_motor);
                 telemetry.update();
 
@@ -268,6 +260,8 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
             // Turn Off RUN_TO_POSITION
             left_motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             right_motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            left_motor.setPower(0.0);
+            right_motor.setPower(0.0);
 
         }//opmode check 1
 
@@ -292,6 +286,13 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
         boolean finding_angle = true;
 
+        //finds angles
+        init_gyro();
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        telemetry.addData("Angle We Are", angles);
+        telemetry.addData("Angle We Want", angle_I_want);
+        telemetry.update();
+
         while (finding_angle == true) {
 
             //finds angles
@@ -315,8 +316,8 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
                 angle_diff = (angles.firstAngle - angle_I_want);
                 turn_drive_speed = Math.min(Math.max((angle_diff * multiplier), turn_top_speed), turn_bottom_speed);
 
-                left_motor.setPower(turn_drive_speed);
-                right_motor.setPower(-turn_drive_speed);
+                left_motor.setPower(-turn_drive_speed);
+                right_motor.setPower(turn_drive_speed);
 
             }
 
@@ -326,8 +327,8 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
                 angle_diff = (angle_I_want - angles.firstAngle);
                 turn_drive_speed = Math.min(Math.max((angle_diff * multiplier), turn_top_speed), turn_bottom_speed);
 
-                left_motor.setPower(-turn_drive_speed);
-                right_motor.setPower(turn_drive_speed);
+                left_motor.setPower(turn_drive_speed);
+                right_motor.setPower(-turn_drive_speed);
 
             }
 
@@ -336,8 +337,8 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
             else {
 
                 //Tells user the robot found the right angle
-                telemetry.addData("On", "track!!!");
-                telemetry.update();
+                //telemetry.addData("On", "track!!!");
+                //telemetry.update();
 
                 //Stops all motion
                 left_motor.setPower(0);
@@ -347,11 +348,13 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
                 finding_angle = false;
 
             }
-
+            /*
             //Updates user
-            telemetry.addData("First angle is: ", Math.round(angles.firstAngle));
-            telemetry.addData("Turn speed: ", turn_drive_speed);
+            telemetry.addData("First angle is", Math.round(angles.firstAngle));
+            telemetry.addData("The angle I am going to",angle_I_want);
+            telemetry.addData("Turn speed", turn_drive_speed);
             telemetry.update();
+            */
         }
 
     }//end of find angle
@@ -372,11 +375,14 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
     public void runOpMode() {
 
         // names the motors
-        left_motor = hardwareMap.dcMotor.get("left_motor");
-        right_motor = hardwareMap.dcMotor.get("right_motor");
+        left_motor = hardwareMap.dcMotor.get("left_drive");
+        right_motor = hardwareMap.dcMotor.get("right_drive");
         //test_motor = hardwareMap.dcMotor.get("test");
 
         //reset varibles -----------------------------------------------------------------------------
+
+        // Can allies go to foundation?
+        can_allies_move_foundation = "not inputed";
 
         // Has the pos_inputed
         up_or_down = "not inputed";
@@ -392,14 +398,22 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
         //reset varibles -----------------------------------------------------------------------------
 
-        // make the motor goes the same way as the left motor
+        // make the motors go the same way
+        right_motor.setDirection(DcMotor.Direction.FORWARD);
         left_motor.setDirection(DcMotor.Direction.REVERSE);
 
         init_gyro();// initialized gyro
 
         where_are_we();// where are we on the field?
 
+        // For testing
+        // telemetry.addLine("All Set!");
+        // telemetry.update();
+
         waitForStart();// wait for the user to press start
+
+        // For testing
+        ///*
 
         //if allies can move foundation
         if(can_allies_move_foundation == "Yes") {
@@ -413,42 +427,43 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
                 if (up_or_down == "Up") {
 
                     if (block_num == "1") {
+                        telemetry.addLine("In Park");
 
-                        drive(24);
+                        drive(24);// drive up
 
-                        angle_turn(-90);
+                        angle_turn(-90);// turn left
 
-                        drive(38);
+                        drive(38);// park under bridge
 
                     }// first block
 
                     if (block_num == "2") {
 
-                        drive(24);
+                        drive(24);// drive up
 
-                        angle_turn(-90);
+                        angle_turn(-90);// turn left
 
-                        drive(15);
+                        drive(15);// park under bridge
 
                     } // second block
 
                     if (block_num == "3") {
 
-                        drive(24);
+                        drive(24);// drive up
 
-                        angle_turn(90);
+                        angle_turn(90);// turn right
 
-                        drive(15);
+                        drive(15);// park under bridge
 
                     } // third block
 
                     if (block_num == "4") {
 
-                        drive(24);
+                        drive(24);// drive up
 
-                        angle_turn(90);
+                        angle_turn(90);// turn right
 
-                        drive(38);
+                        drive(38);// park under bridge
 
                     } // forth block
 
@@ -463,7 +478,7 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
                     if (block_num == "1") {
 
-                        drive(pull_away_inches);
+                        drive(pull_away_inches);// GET AWAY 
 
                         angle_turn(-90);
 
@@ -606,7 +621,7 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
                         drive(38);
 
                     } // forth block
-                    
+
                 }// if down
 
                 // DOWN ---------------------------------------------
@@ -618,7 +633,7 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
         }// end of non moving foundation code
 
         // if allies cannot move foundation
-        if(can_allies_move_foundation == "Yes") {
+        if (can_allies_move_foundation == "No") {
 
             // BLUE ------------------------------------------------------------------------------------------
 
@@ -626,31 +641,36 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
             if (red_or_blue == "Blue") {
 
                 // we want to park up
-                if (up_or_down == "UP"){
+                if (up_or_down == "Up"){
 
                     if (block_num == "1") {
+                        telemetry.addLine("In Foundation");
 
                         drive(24);// drive toward foundations
 
-                        angle_turn(90);// turn right
+                        angle_turn(-90);// turn right
 
-                        drive(12);// drive toward bridge
+                        drive(14);// drive toward bridge
 
-                        angle_turn(-90);// turn left
+                        angle_turn(90);// turn left
 
-                        drive(24);// get in the middle of the foundations
+                        // Add two inches to annoy others
+                        drive(38);// get in the middle of the foundations
 
-                        angle_turn(90);// turn around so point is facing foundations
+                        angle_turn(-90);// turn around so point is facing foundations
 
-                        drive(-24); // drive backwards to push the foundations apart
+                        // Add 3 inches because of foundation pushing
+                        drive(-40); // drive backwards to push the foundations apart
 
-                        angle_turn(90);// turn to face the foundations
+                        drive(5);// back off a little
 
-                        drive(30);// push the foundation toward build site
+                        angle_turn(-90);// turn to face the foundations
+
+                        drive(48);// push the foundation toward build site
 
                         drive(-3);// back off a little
 
-                        angle_turn(-90);// turn to face the bridge
+                        angle_turn(90);// turn to face the bridge
 
                         drive(50);// park
 
@@ -658,23 +678,23 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
                     if (block_num == "2") {
 
-                        drive(12);// drive toward fountation
+                        drive(24);// drive toward fountation
 
-                        angle_turn(-90);// turn toward build site wall
+                        angle_turn(90);// turn toward build site wall
 
-                        drive(6);// drive toward build site wall
+                        drive(12);// drive toward build site wall
 
-                        angle_turn(90);// turn to face opposite team
+                        angle_turn(0);// turn to face opposite team
 
-                        drive(24);// get in the middle of the foundations
+                        drive(36);// get in the middle of the foundations
 
-                        angle_turn(90);// turn around so point is facing foundations
+                        angle_turn(-90);// turn around so point is facing foundations
 
                         drive(-24); // drive backwards to push the foundations apart
 
                         angle_turn(90);// turn to face the foundations
 
-                        drive(30);// push the foundation toward build site
+                        drive(36);// push the foundation toward build site
 
                         drive(-3);// back off a little
 
@@ -787,7 +807,7 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
                         angle_turn(90);// turn to face opposite team
 
-                        drive(24);// get in the middle of the foundations
+                        drive(36);// get in the middle of the foundations
 
                         angle_turn(90);// turn around so point is facing foundations
 
@@ -885,7 +905,7 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
             if (red_or_blue == "Red") {
 
                 // we want to park up
-                if (up_or_down == "UP"){
+                if (up_or_down == "Up"){
 
                     if (block_num == "1") {
 
@@ -1142,6 +1162,9 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
         telemetry.addLine("Have a good day user");// thanks the user
         telemetry.update();
+
+        // For testing
+        // */
 
     }// end of runOpMode
 
