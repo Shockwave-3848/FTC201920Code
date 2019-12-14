@@ -27,15 +27,16 @@ public class Teleop extends OpMode{
     private double right_motor_power = 0;
     private double left_motor_power = 0;
     static  double hand_power = 1;
-    static  double lift_power = 0.75;
+    static  double lift_power = 1;
 
     // what is the max speed of the robot
     private double max_speed = 0.75; //used to cap the speed
     private boolean is_speed_halved = false;
     private boolean is_reversed = false;
+    private boolean from_up = false;
 
     // used to reverse the robot
-    private int flip = -1;
+    private int flip = 1;
 
     // hand methods ----------------------------------------------------------------------------------------------------
 
@@ -92,6 +93,12 @@ public class Teleop extends OpMode{
         lift_motor.setPower(-lift_power);
 
     }//end of lower_lift
+
+    public void stop_lift_up(){
+
+        lift_motor.setPower(0.2);
+
+    }//end of stop_lift
 
     public void stop_lift(){
 
@@ -246,8 +253,11 @@ public class Teleop extends OpMode{
 
         // at default, the lift and hands should not move
         if (gamepad1.right_trigger == 0 && gamepad1.left_trigger == 0){
-
-            stop_lift();
+            if(from_up){
+                stop_lift_up();
+            } else {
+                stop_lift();
+            }
 
         }// end of stop lift
 
@@ -255,6 +265,7 @@ public class Teleop extends OpMode{
         if (gamepad1.right_trigger > 0 && gamepad1.left_trigger == 0){
 
             raise_lift();
+            from_up = true;
 
             telemetry.addLine("The lift is raising"); // Message to Driver
             telemetry.update();
@@ -265,6 +276,7 @@ public class Teleop extends OpMode{
         if (gamepad1.left_trigger > 0 && gamepad1.right_trigger == 0){
 
             lower_lift();
+            from_up = false;
 
             telemetry.addLine("The lift is lowering"); // Message to Driver
             telemetry.update();
