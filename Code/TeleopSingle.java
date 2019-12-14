@@ -8,10 +8,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import java.lang.Math;
 //imports
 
-@TeleOp(name = "Shockwave_Drive", group = "Shockwave")
+@TeleOp(name = "Shockwave_Drive_1", group = "Shockwave")
 //@Disabled
 
-public class Teleop extends OpMode{
+public class TeleopSingle extends OpMode{
 
     // Version number
     static double version_number = 2.3;
@@ -90,7 +90,7 @@ public class Teleop extends OpMode{
 
     public void lower_lift(){
 
-        lift_motor.setPower(-lift_power);
+        lift_motor.setPower(-lift_power * 0.5);
 
     }//end of lower_lift
 

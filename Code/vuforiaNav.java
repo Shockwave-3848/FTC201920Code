@@ -16,6 +16,7 @@ import java.lang.Math;
 public class vuforiaNav extends LinearOpMode {
     private DcMotor leftDrive = null;
     private DcMotor rightDrive = null;
+    private DcMotor lift_motor = null;
     double                  power = 0.25;
 
     String mode = "Find Target";
@@ -24,13 +25,15 @@ public class vuforiaNav extends LinearOpMode {
     boolean secondBlock;
 
 
+
     double[] desiredLocation = {-60.0f, 35.0f};
     double desiredYaw;
 
     ElapsedTime     runtime = new ElapsedTime();
     @Override public void runOpMode() {
-        leftDrive = hardwareMap.get(DcMotor.class, "left_motor");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_motor");
+        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
+        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+        lift_motor = hardwareMap.dcMotor.get("lift_motor");
         leftDrive.setDirection(DcMotor.Direction.FORWARD);
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
 
@@ -54,7 +57,9 @@ public class vuforiaNav extends LinearOpMode {
         waitForStart();
 
         encoderDrive.drivePID(20, leftDrive, rightDrive, 1, 1);
-        /*
+        encoderDrive.drivePID(1, lift_motor, lift_motor, 1, 1);
+        lift_motor.setPower(0);
+
         while(!(ColorSensor.getDistanceOne() < 15)){
             leftDrive.setPower(0.25);
             rightDrive.setPower(0.25);
@@ -63,7 +68,7 @@ public class vuforiaNav extends LinearOpMode {
         }
         leftDrive.setPower(0);
         rightDrive.setPower(0);
-        */
+
         // 1 inch = 2.75 cm
 
         for (int i = 0; i < 3; i++) {

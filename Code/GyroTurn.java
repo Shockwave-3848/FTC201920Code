@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -21,7 +22,7 @@ public class GyroTurn
     BNO055IMU               imu;
     Orientation             lastAngles = new Orientation();
     double                  globalAngle = 0;
-    double                  maxTime = 2.5;
+    double                  maxTime = 3;
 
     GyroTurn() {}
 
@@ -39,6 +40,13 @@ public class GyroTurn
         imu.initialize(parameters);
     }
 
+    public void test(Telemetry telemetry){
+        while (true) {
+            Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            telemetry.addData("Angles", angles);
+            telemetry.update();
+        }
+    }
 
     public void getAngle()
     {
@@ -61,28 +69,31 @@ public class GyroTurn
         lastAngles = angles;
     }
 
-    public void turnDegrees(double degreesToTurn, DcMotor leftDrive, DcMotor rightDrive){
+    public void turnDegrees(double degreesToTurn, DcMotor leftDrive, DcMotor rightDrive, Telemetry telemetry){
         ElapsedTime runtime = new ElapsedTime();
         double power = 0.25;
         PIDController           pidRotate;
         globalAngle = 0;
 
         //pidRotate = new PIDController(0.01, 0.0, 0.01);
-        pidRotate = new PIDController(0.02, 0.0, 0.06);
+        pidRotate = new PIDController(0.02, 0.0, 0.04);
         pidRotate.reset();
         pidRotate.setSetpoint(degreesToTurn);
         pidRotate.setInputRange(-180, 180);
-        pidRotate.setOutputRange(0, 0.5);
+        pidRotate.setOutputRange(0, 0.2);
         pidRotate.setTolerance(1);
         pidRotate.enable();
 
         //while (!pidRotate.onTarget()){
         while(!(globalAngle <= degreesToTurn + 0.75 && globalAngle >= degreesToTurn - 0.75) && (runtime.seconds() < maxTime)){
             getAngle();
+            telemetry.addData("angle I want", degreesToTurn);
+            telemetry.addData("angle I have", globalAngle);
+            telemetry.update();
             power = pidRotate.performPID(globalAngle); // power will be - on right turn.
 
-            leftDrive.setPower(power);
-            rightDrive.setPower(-power);
+            leftDrive.setPower(-power);
+            rightDrive.setPower(power);
         }
         leftDrive.setPower(0);
         rightDrive.setPower(0);
