@@ -96,7 +96,7 @@ public class TeleopSingle extends OpMode{
 
     public void stop_lift_up(){
 
-        lift_motor.setPower(0.2);
+        lift_motor.setPower(0.1);
 
     }//end of stop_lift
 
