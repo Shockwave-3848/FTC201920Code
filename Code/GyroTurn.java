@@ -76,7 +76,7 @@ public class GyroTurn
         globalAngle = 0;
 
         //pidRotate = new PIDController(0.01, 0.0, 0.01);
-        pidRotate = new PIDController(0.02, 0.0, 0.04);
+        pidRotate = new PIDController(0.02, 0.0, 0.03);
         pidRotate.reset();
         pidRotate.setSetpoint(degreesToTurn);
         pidRotate.setInputRange(-180, 180);
@@ -85,7 +85,8 @@ public class GyroTurn
         pidRotate.enable();
 
         //while (!pidRotate.onTarget()){
-        while(!(globalAngle <= degreesToTurn + 0.75 && globalAngle >= degreesToTurn - 0.75) && (runtime.seconds() < maxTime)){
+        runtime.reset();
+        while(!(globalAngle <= degreesToTurn + 1 && globalAngle >= degreesToTurn - 1) && runtime.seconds() < 2){
             getAngle();
             telemetry.addData("angle I want", degreesToTurn);
             telemetry.addData("angle I have", globalAngle);

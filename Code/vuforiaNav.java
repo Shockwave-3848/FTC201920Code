@@ -30,10 +30,14 @@ public class vuforiaNav extends LinearOpMode {
     double desiredYaw;
 
     ElapsedTime     runtime = new ElapsedTime();
+
+    static final int motor_revcount = 2240; //2240 ticks per rotation for the REV-41-1301 Encoder Specifications. We use the Rev-41-1291, but I could not find the specific values. The REV-41-1301 is similar enough for this to work hopefully. If the robot is not working correctly try other values.
+    static final double wheel_diameter = 3.6;
+    static final double counts_per_inch = (motor_revcount) / (wheel_diameter * Math.PI);
     @Override public void runOpMode() {
         leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
         rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
-        lift_motor = hardwareMap.dcMotor.get("lift_motor");
+        rightDrive = hardwareMap.get(DcMotor.class, "lift_motor");
         leftDrive.setDirection(DcMotor.Direction.FORWARD);
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
 
@@ -56,9 +60,12 @@ public class vuforiaNav extends LinearOpMode {
 
         waitForStart();
 
-        encoderDrive.drivePID(20, leftDrive, rightDrive, 1, 1);
+        drive(-24, 0.5);
         encoderDrive.drivePID(1, lift_motor, lift_motor, 1, 1);
-        lift_motor.setPower(0);
+        lift_motor.setPower(0.1);
+
+        runtime.reset();
+        while(runtime.seconds() < 10){}
 
         while(!(ColorSensor.getDistanceOne() < 15)){
             leftDrive.setPower(0.25);
@@ -181,5 +188,46 @@ public class vuforiaNav extends LinearOpMode {
             return Math.toDegrees(Math.atan(desiredLocation[1] / desiredLocation[0]));
         }
     }
+
+    public void drive(double inches, double speed){
+
+        //declaring variables, where is it going?
+        int new_left_target;
+        int new_right_target;
+
+        // If the opmode is still active
+        if (opModeIsActive()) {
+
+            // Determine new target position, and pass to motor controller
+            new_left_target = leftDrive.getCurrentPosition() + (int)(inches * counts_per_inch);
+            new_right_target = rightDrive.getCurrentPosition() + (int)(inches * counts_per_inch);
+
+            //set the target
+            leftDrive.setTargetPosition(new_left_target);
+            rightDrive.setTargetPosition(new_right_target);
+            //finished setting the target
+
+            //turn on RUN_TO_POSITION
+            leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            //rstart motion.
+            leftDrive.setPower(Math.abs(speed));
+            rightDrive.setPower(Math.abs(speed));
+
+            //this loop updates the user about the postion of the wheels
+            while (opModeIsActive() && (rightDrive.isBusy()) && (leftDrive.isBusy())) {
+
+                // Display it for the driver.
+                telemetry.addData("Path1",  "Running to %7d :%7d", new_left_target,  new_right_target);
+                telemetry.addData("Path2",  "Running at %7d :%7d", leftDrive.getCurrentPosition(), rightDrive.getCurrentPosition());
+                telemetry.update();
+            }
+
+            //end of setting the target
+
+        }//end of opModeIsActive()
+
+    }//end of drive
 
 }

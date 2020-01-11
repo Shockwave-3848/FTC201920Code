@@ -113,8 +113,8 @@ public class TeleopDouble extends OpMode{
     public void init() {
 
         //sets the name for the motors that the code looks for in the program
-        right_motor = hardwareMap.dcMotor.get("right_drive");
-        left_motor = hardwareMap.dcMotor.get("left_drive");
+        right_motor = hardwareMap.dcMotor.get("right_motor");
+        left_motor = hardwareMap.dcMotor.get("left_motor");
         lift_motor = hardwareMap.dcMotor.get("lift_motor");
         left_hands_motor = hardwareMap.dcMotor.get("left_hand");
         right_hands_motor = hardwareMap.dcMotor.get("right_hand");
