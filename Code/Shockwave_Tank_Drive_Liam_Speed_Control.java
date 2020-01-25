@@ -226,6 +226,17 @@ public class Shockwave_Tank_Drive_Liam_Speed_Control extends OpMode{
 
         //controller input --------------------------------------------------------------------------------------------
 
+        //d-pad
+        if(gamepad1.dpad_up){
+            right_motor_power = -0.2 * flip;
+            left_motor_power = -0.2 * flip;
+        }
+
+        if(gamepad1.dpad_down){
+            right_motor_power = 0.2 * flip;
+            left_motor_power = 0.2 * flip;
+        }
+
         //the robot is not reversed
         if((current_right_bumber_gamepad_value == true) && (is_reversed == false)){
 

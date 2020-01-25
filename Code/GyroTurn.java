@@ -71,7 +71,7 @@ public class GyroTurn
 
     public void turnDegrees(double degreesToTurn, DcMotor leftDrive, DcMotor rightDrive, Telemetry telemetry){
         ElapsedTime runtime = new ElapsedTime();
-        double power = 0.4;
+        double power = 0.3;
         PIDController           pidRotate;
         globalAngle = 0;
 
