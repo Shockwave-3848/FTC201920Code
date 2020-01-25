@@ -71,7 +71,7 @@ public class GyroTurn
 
     public void turnDegrees(double degreesToTurn, DcMotor leftDrive, DcMotor rightDrive, Telemetry telemetry){
         ElapsedTime runtime = new ElapsedTime();
-        double power = 0.25;
+        double power = 0.4;
         PIDController           pidRotate;
         globalAngle = 0;
 
@@ -80,7 +80,7 @@ public class GyroTurn
         pidRotate.reset();
         pidRotate.setSetpoint(degreesToTurn);
         pidRotate.setInputRange(-180, 180);
-        pidRotate.setOutputRange(0, 0.2);
+        pidRotate.setOutputRange(0, power);
         pidRotate.setTolerance(1);
         pidRotate.enable();
 

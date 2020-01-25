@@ -229,6 +229,8 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
         // drive tends to undershoot the desired inches so the value bellow will be added to the goal destinations
         int extra_inches = 0;
 
+        int tolerance = 1;
+
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
 
@@ -260,7 +262,11 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
             //makes sure the robot is not broken
             runtime.reset();
-            while (opModeIsActive() && (left_motor.isBusy() || right_motor.isBusy()) && runtime.seconds() < 3) {
+            while (opModeIsActive() &&
+                    //(left_motor.isBusy() || right_motor.isBusy())
+                    !(right_motor.getCurrentPosition() > new_rw_target - tolerance && right_motor.getCurrentPosition() < new_rw_target + tolerance) &&
+                    !(left_motor.getCurrentPosition() > new_lw_target - tolerance && left_motor.getCurrentPosition() < new_lw_target + tolerance)
+                    && runtime.seconds() < 3) {
 
                 telemetry.addLine("Am I working?");
                 telemetry.addData("Speed", power);
@@ -320,7 +326,7 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
             //makes sure the robot is not broken
             runtime.reset();
-            while (opModeIsActive() && (lift_motor.isBusy()) && runtime.seconds() < 3) {
+            while (opModeIsActive() && (lift_motor.isBusy()) && runtime.seconds() < 1) {
 
                 telemetry.addLine("Am I working?");
                 telemetry.addData("Speed", power);
@@ -758,30 +764,34 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
                         angle_turn(turn_left);// turn to face the bridge
 
                         drive(48, basic_speed);// park
-                        */
-                        drive(45, 0.2);// drive toward fountation
-                        drive(50, 0.2);// drive toward fountation
+
+                         */
+
+                        drive(60, 0.6);// drive toward fountation
+
 
                         angle_turn(turn_right);// turn around so point is facing foundations
 
-                        drive(-24, 0.5);
+                        drive(-24, 0.6);
                         //drive(-12, 0.5);
 
                         arm_movement(10, 1);
 
                         angle_turn(turn_right);
 
-                        drive(37, 0.5);
+                        drive(38, 0.6);
                         //drive(24, 0.5);
 
-                        drive(-12, basic_speed);
+                        drive(-14, 0.6);
 
                         //arm_movement(-1, 1);
                         //lift_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
                         angle_turn(55);
 
-                        drive(43, 0.3);
+                        arm_movement(-10, 1);
+
+                        drive(52, 0.6);
 
 
 
@@ -1049,29 +1059,31 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
                         drive(50, basic_speed);// park
                         */
-                        drive(45, 0.2);// drive toward fountation
-                        drive(50, 0.2);// drive toward fountation
+                        drive(60, 0.6);// drive toward fountation
+
 
                         angle_turn(turn_left);// turn around so point is facing foundations
 
-                        drive(-24, 0.5);
+                        drive(-24, 0.6);
                         //drive(-12, 0.5);
 
                         arm_movement(10, 1);
 
                         angle_turn(turn_left);
 
-                        drive(37, 0.5);
+                        drive(38, 0.6);
                         //drive(24, 0.5);
 
-                        drive(-12, basic_speed);
+                        drive(-14, 0.6);
 
                         //arm_movement(-1, 1);
                         //lift_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
                         angle_turn(-55);
 
-                        drive(43, 0.3);
+                        arm_movement(-10, 1);
+
+                        drive(52, 0.6);
 
                     }
 
