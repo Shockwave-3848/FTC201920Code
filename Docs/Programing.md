@@ -98,7 +98,7 @@ Data types vary from language to langage so the java spesific ones will be cover
 
 * boolean: true or false value (1 bit)
 * short: less numbers then an int (16-bit)
-* int: see above
+* int: normal amount of nombers (32-bit)
 * long: more then an int (64-bit)
 * float: same as int but with decimals (32-bit)
 * double: same as float but with more decimal places (64-bit)

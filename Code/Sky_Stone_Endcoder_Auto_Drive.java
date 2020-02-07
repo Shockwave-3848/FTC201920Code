@@ -23,7 +23,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
     // Version number
-    static double version_number = 5.1;
+    static double version_number = 6.0;
 
     // Variables --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -36,15 +36,6 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
     DcMotor right_motor;
     DcMotor lift_motor;
 
-    // Defining the IMU sensor object=
-    BNO055IMU imu;
-
-    // Used for IMU turning
-    Orientation angles;
-
-    // A little forgiveness for the robot's turning
-    static double tolerance = 0;
-
     // Wheel stats
     static final int motor_revcount = 28; //28 ticks per rotation for a 15:1 motor //4 ticks at output for core hex motor (72:1)
     static final int lift_motor_revcount = 2240;
@@ -56,10 +47,6 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
     // Speed
     static final double basic_speed = 0.20;
 
-    // Speed stats for turning
-    static double turn_drive_speed = 0.5;
-    static double turn_top_speed = 0.5;
-    static double turn_bottom_speed = 0.2;
 
     // Turn angles
     static double turn_left = 90;
@@ -247,10 +234,6 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
             new_rw_target = right_motor.getCurrentPosition() + (int)((inches + extra_inches) * counts_per_inch);// gives wheels the motor can use
             right_motor.setTargetPosition(new_rw_target);
 
-            // test target
-            //new_test_target = test_motor.getCurrentPosition() + (int) (inches * counts_per_inch);// gives wheels the motor can use
-            //test_motor.setTargetPosition(new_test_target);
-
             // sets power
             right_motor.setPower(power);
             left_motor.setPower(power);
@@ -263,7 +246,6 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
             //makes sure the robot is not broken
             runtime.reset();
             while (opModeIsActive() &&
-                    //(left_motor.isBusy() || right_motor.isBusy())
                     !(right_motor.getCurrentPosition() > new_rw_target - tolerance && right_motor.getCurrentPosition() < new_rw_target + tolerance) &&
                     !(left_motor.getCurrentPosition() > new_lw_target - tolerance && left_motor.getCurrentPosition() < new_lw_target + tolerance)
                     && runtime.seconds() < 3) {
@@ -274,7 +256,6 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
                 telemetry.addData("new_rw_target", new_rw_target);
                 telemetry.addData("right wheel currently", right_motor.getCurrentPosition());
                 telemetry.addData("left wheel currently", left_motor.getCurrentPosition());
-                //telemetry.addData("new_test_motor:", test_motor);
                 telemetry.update();
 
             }//opmode check 2
@@ -340,88 +321,10 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
     }// end of arm movement
 
-    //start of init_gyro
-    public void init_gyro() {
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-
-        parameters.mode = BNO055IMU.SensorMode.IMU; //what sensor is it
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES; // what unit of turn do we use
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC; //what unit of speed to we use
-        parameters.loggingEnabled = false;
-
-        imu = hardwareMap.get(BNO055IMU.class, "imu"); // defines the imu
-
-        imu.initialize(parameters);//start this baby up
-
-    }//end of init_gyro
 
     public void angle_turn(double angle_I_want) {
-        //internalGyro.test(telemetry);
         internalGyro.turnDegrees(angle_I_want, left_motor, right_motor, telemetry);
-        //telemetry.addData("angle", internalGyro.globalAngle);
-
-        /*
-        boolean finding_angle = true;
-        //finds angles
-        init_gyro();
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        telemetry.addData("Angle We Are", angles);
-        telemetry.addData("Angle We Want", angle_I_want);
-        telemetry.update();
-        while (finding_angle == true) {
-            //finds angles
-            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-            //The bigger this is the closer it has to be to slow down
-            double multiplier = 1;
-            double angle_diff;
-            angles.firstAngle = xy plane
-            angles.secondAngle = tilt
-            angles.thirdAngle = roll
-            //correct the angel----------
-            if (Math.round(angles.thirdAngle) - tolerance > angle_I_want) {
-                //Slows down before finding correct angle to prevent the robot from over shoting it
-                angle_diff = (angles.thirdAngle - angle_I_want);
-                turn_drive_speed = Math.min(Math.max((angle_diff * multiplier), turn_top_speed), turn_bottom_speed);
-                left_motor.setPower(-turn_drive_speed);
-                right_motor.setPower(turn_drive_speed);
-            }
-            else if (Math.round(angles.thirdAngle) + tolerance < angle_I_want) {
-                //Slows down before finding correct angle to prevent the robot from over shoting it
-                angle_diff = (angle_I_want - angles.thirdAngle);
-                turn_drive_speed = Math.min(Math.max((angle_diff * multiplier), turn_top_speed), turn_bottom_speed);
-                left_motor.setPower(turn_drive_speed);
-                right_motor.setPower(-turn_drive_speed);
-            }
-            //correct the angel----------
-            else {
-                //Tells user the robot found the right angle
-                //telemetry.addData("On", "track!!!");
-                //telemetry.update();
-                //Stops all motion
-                left_motor.setPower(0);
-                right_motor.setPower(0);
-                //FOUND ANGLE :)
-                finding_angle = false;
-            }
-            //Updates user
-            telemetry.addData("First angle is", Math.round(angles.firstAngle));
-            telemetry.addData("The angle I am going to",angle_I_want);
-            telemetry.addData("Turn speed", turn_drive_speed);
-            telemetry.update();
-        }*/
-
     }//end of find angle
-
-    public void turn_around(int num_of_turns){
-
-        //turn the amount of times specified
-        for (int i = 0; i < num_of_turns ; i++){
-
-            angle_turn(90);
-
-        }// end of for loop
-
-    }// end of turn around
 
     //where the actual task happen
     @Override
@@ -437,7 +340,6 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
         left_motor = hardwareMap.dcMotor.get("left_motor");
         right_motor = hardwareMap.dcMotor.get("right_motor");
         lift_motor = hardwareMap.dcMotor.get("lift_motor");
-        //test_motor = hardwareMap.dcMotor.get("test");
 
         //reset varibles -----------------------------------------------------------------------------
 
@@ -468,18 +370,12 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
         right_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         left_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        init_gyro();// initialized gyro
 
         where_are_we();// where are we on the field?
 
-        // For testing
-        // telemetry.addLine("All Set!");
-        // telemetry.update();
 
         waitForStart();// wait for the user to press start
 
-        // For testing
-        // /*
 
         //if allies can move foundation
         if(can_allies_move_foundation == "Yes") {
@@ -740,60 +636,38 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
                     }// end of block 1
 
                     if (block_num == "2") {
-                        /*
-                        drive(22, basic_speed);// drive toward fountation
 
-                        angle_turn(turn_left);// turn toward build site wall
+                        angle_turn(30);
 
-                        drive(12, basic_speed);// drive toward build site wall
+                        drive(13, 0.6); // Drive towrds the foundaton
 
-                        angle_turn(turn_right);// turn to face opposite team
+                        angle_turn(-30);
 
-                        drive(36, basic_speed);// get in the middle of the foundations
+                        arm_movement(10, 1); // Lift arm out of the way
 
-                        angle_turn(turn_right);// turn around so point is facing foundations
+                        drive(24, 0.2); // Drive towrds the foundaton
 
-                        drive(-24, 1); // drive backwards to push the foundations apart
+                        arm_movement(-10, 1); // Arm down onto foundation
 
-                        angle_turn(turn_right);// turn to face the foundations
+                        drive(-35, 0.6); // Go back towrds wall
 
-                        drive(48, basic_speed);// push the foundation toward build site
+                        arm_movement(10, 1); // Lift arm out of the way
 
-                        drive(-3, basic_speed);// back off a littlenJ
+                        internalGyro.power = 0.9;
 
-                        angle_turn(turn_left);// turn to face the bridge
+                        angle_turn(95);
 
-                        drive(48, basic_speed);// park
+                        arm_movement(-10, 1); // Arm down
 
-                         */
+                        drive(-28, 0.6);
 
-                        drive(60, 0.6);// drive toward fountation
+                        angle_turn(-90);
 
+                        drive(25, 0.6);
 
-                        angle_turn(turn_right);// turn around so point is facing foundations
-
-                        drive(-24, 0.6);
-                        //drive(-12, 0.5);
-
-                        arm_movement(10, 1);
-
-                        angle_turn(turn_right);
-
-                        drive(38, 0.6);
-                        //drive(24, 0.5);
+                        angle_turn(90);
 
                         drive(-14, 0.6);
-
-                        //arm_movement(-1, 1);
-                        //lift_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-
-                        angle_turn(55);
-
-                        arm_movement(-10, 1);
-
-                        drive(52, 0.6);
-
-
 
 
                     }// end of block 2
@@ -897,33 +771,29 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
                     if (block_num == "2") {
 
-                        drive(12, basic_speed);// drive toward fountation
+                        angle_turn(30);
 
-                        angle_turn(turn_left);// turn toward build site wall
+                        drive(13, 0.6); // Drive towrds the foundaton
 
-                        drive(6, basic_speed);// drive toward build site wall
+                        angle_turn(-30);
 
-                        angle_turn(turn_right);// turn to face opposite team
+                        arm_movement(10, 1); // Lift arm out of the way
 
-                        drive(36, basic_speed);// get in the middle of the foundations
+                        drive(24, 0.2); // Drive towrds the foundaton
 
-                        angle_turn(turn_right);// turn around so point is facing foundations
+                        arm_movement(-10, 1); // Arm down onto foundation
 
-                        drive(-24, 1); // drive backwards to push the foundations apart
+                        drive(-35, 0.6); // Go back towrds wall
 
-                        angle_turn(turn_right);// turn to face the foundations
+                        arm_movement(10, 1); // Lift arm out of the way
 
-                        drive(48, 1);// push the foundation toward build site
+                        internalGyro.power = 0.9;
 
-                        drive(-3, basic_speed);// back off a little
+                        angle_turn(95);
 
-                        angle_turn(turn_left);// turn to face the bridge
+                        arm_movement(-10, 1); // Arm down
 
-                        drive(50, basic_speed);// park
-
-                        angle_turn(turn_left);// turn
-
-                        drive(12,basic_speed);// park lower
+                        drive(-40, 0.6); // Go back towrds wall
 
                     }
 
@@ -1034,56 +904,37 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
                     }
 
                     if (block_num == "2") {
-                        /*
-                        drive(12, basic_speed);// drive toward foundation
+                        angle_turn(-30);
 
-                        angle_turn(turn_left);// turn toward build site wall
+                        drive(13, 0.6); // Drive towrds the foundaton
 
-                        drive(6, basic_speed);// drive toward build site wall
+                        angle_turn(30);
 
-                        angle_turn(turn_left);// turn to face opposite team
+                        arm_movement(10, 1); // Lift arm out of the way
 
-                        drive(24, basic_speed);// get in the middle of the foundations
+                        drive(24, 0.2); // Drive towrds the foundaton
 
-                        angle_turn(turn_left);// turn around so point is facing foundations
+                        arm_movement(-10, 1); // Arm down onto foundation
 
-                        drive(-24, 1); // drive backwards to push the foundations apart
+                        drive(-35, 0.6); // Go back towrds wall
 
-                        angle_turn(turn_left);// turn to face the foundations
+                        arm_movement(10, 1); // Lift arm out of the way
 
-                        drive(48, 1);// push the foundation toward build site
+                        internalGyro.power = 0.9;
 
-                        drive(-3, basic_speed);// back off a little
+                        angle_turn(-95);
 
-                        angle_turn(turn_right);// turn to face the bridge
+                        arm_movement(-10, 1); // Arm down
 
-                        drive(50, basic_speed);// park
-                        */
-                        drive(60, 0.6);// drive toward fountation
+                        drive(-28, 0.6);
 
+                        angle_turn(90);
 
-                        angle_turn(turn_left);// turn around so point is facing foundations
+                        drive(25, 0.6);
 
-                        drive(-24, 0.6);
-                        //drive(-12, 0.5);
-
-                        arm_movement(10, 1);
-
-                        angle_turn(turn_left);
-
-                        drive(38, 0.6);
-                        //drive(24, 0.5);
+                        angle_turn(-90);
 
                         drive(-14, 0.6);
-
-                        //arm_movement(-1, 1);
-                        //lift_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-
-                        angle_turn(-55);
-
-                        arm_movement(-10, 1);
-
-                        drive(52, 0.6);
 
                     }
 
@@ -1182,33 +1033,29 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
                     if (block_num == "2") {
 
-                        drive(12, basic_speed);// drive toward foundation
+                        angle_turn(-30);
 
-                        angle_turn(turn_right);// turn toward build site wall
+                        drive(13, 0.6); // Drive towrds the foundaton
 
-                        drive(6, basic_speed);// drive toward build site wall
+                        angle_turn(30);
 
-                        angle_turn(turn_left);// turn to face opposite team
+                        arm_movement(10, 1); // Lift arm out of the way
 
-                        drive(24, basic_speed);// get in the middle of the foundations
+                        drive(24, 0.2); // Drive towrds the foundaton
 
-                        angle_turn(turn_left);// turn around so point is facing foundations
+                        arm_movement(-10, 1); // Arm down onto foundation
 
-                        drive(-24, 1); // drive backwards to push the foundations apart
+                        drive(-35, 0.6); // Go back towrds wall
 
-                        angle_turn(turn_left);// turn to face the foundations
+                        arm_movement(10, 1); // Lift arm out of the way
 
-                        drive(48, 1);// push the foundation toward build site
+                        internalGyro.power = 0.9;
 
-                        drive(-3, basic_speed);// back off a little
+                        angle_turn(-95);
 
-                        angle_turn(turn_right);// turn to face the bridge
+                        arm_movement(-10, 1); // Arm down
 
-                        drive(50, basic_speed);// park
-
-                        angle_turn(turn_right);// turn
-
-                        drive(12, basic_speed);// park lower
+                        drive(-40, 0.6); // Go back towrds wall
 
                     }
 
@@ -1286,9 +1133,6 @@ public class Sky_Stone_Endcoder_Auto_Drive extends LinearOpMode {
 
         telemetry.addLine("Have a good day user");// thanks the user
         telemetry.update();
-
-        // For testing
-        // */
 
     }// end of runOpMode
 

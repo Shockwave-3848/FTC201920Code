@@ -1,15 +1,17 @@
-package org.firstinspires.ftc.teamcode.Code;
+package org.firstinspires.ftc.teamcode.Code.unused;
 
+/*
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.Code.Encoder;
+import org.firstinspires.ftc.teamcode.Code.GyroTurn;
+import org.firstinspires.ftc.teamcode.Code.unused.SensorREVColor;
 
 import java.lang.Math;
-
 
 @Autonomous(name="SKYSTONE Vuforia Nav", group ="Concept")
 @Disabled
@@ -169,6 +171,7 @@ public class vuforiaNav extends LinearOpMode {
         vuforiaNavication.deactivateVuforia();
 
          */
+/*
     }
 
     public double updateDesiredLocation(double wantedX, double wantedY, double currentX, double currentY){
@@ -230,4 +233,4 @@ public class vuforiaNav extends LinearOpMode {
 
     }//end of drive
 
-}
+}*/

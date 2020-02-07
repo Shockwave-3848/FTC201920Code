@@ -1,18 +1,15 @@
-package org.firstinspires.ftc.teamcode.Code;
+package org.firstinspires.ftc.teamcode.Code.unused;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
 import java.lang.Math;
 
 
 
-//@Autonomous(name="Encoder", group ="Concept")
 //@Disabled
+// Class
 public class Encoder {
     double                  maxTime = 2.5;
     double                  startPower;

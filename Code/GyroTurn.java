@@ -1,31 +1,29 @@
 package org.firstinspires.ftc.teamcode.Code;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 
 
+// Class used to turn the robot a specified number of degrees using a PID algorithm
+// Heavily modified from https://stemrobotics.cs.pdx.edu/node/7265
 public class GyroTurn
 {
-    BNO055IMU               imu;
-    Orientation             lastAngles = new Orientation();
-    double                  globalAngle = 0;
-    double                  maxTime = 3;
+    BNO055IMU               imu; // Internal Measurement Unit
+    Orientation             lastAngles = new Orientation(); // Update orientation in case REV hub turned
+    double                  globalAngle = 0; // Current robot angle
+    double                  maxTime = 2; // Upper time limit so we do not get stuck
+    public double           power; // Power to give to motors
 
     GyroTurn() {}
 
+    // "Turn on" gyro
     public void initGyro(HardwareMap hardwareMap) throws InterruptedException
     {
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -40,6 +38,7 @@ public class GyroTurn
         imu.initialize(parameters);
     }
 
+    // Method to test of IMU is working
     public void test(Telemetry telemetry){
         while (true) {
             Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
@@ -48,6 +47,7 @@ public class GyroTurn
         }
     }
 
+    // Update globalAngle
     public void getAngle()
     {
         // We experimentally determined the Z axis is the axis we want to use for heading angle.
@@ -69,24 +69,26 @@ public class GyroTurn
         lastAngles = angles;
     }
 
+    // Main function
     public void turnDegrees(double degreesToTurn, DcMotor leftDrive, DcMotor rightDrive, Telemetry telemetry){
-        ElapsedTime runtime = new ElapsedTime();
-        double power = 0.3;
-        PIDController           pidRotate;
-        globalAngle = 0;
+        ElapsedTime runtime = new ElapsedTime(); // Used for time
+        PIDController           pidRotate; // Create PID instances
+        int tolerance = 1;
 
-        //pidRotate = new PIDController(0.01, 0.0, 0.01);
-        pidRotate = new PIDController(0.02, 0.0, 0.03);
+        globalAngle = 0;
+        power = 0.3;
+
+        //Pid setup
+        pidRotate = new PIDController(0.02, 0.0, 0.03); // Trial and error turned numbers
         pidRotate.reset();
         pidRotate.setSetpoint(degreesToTurn);
         pidRotate.setInputRange(-180, 180);
         pidRotate.setOutputRange(0, power);
-        pidRotate.setTolerance(1);
+        pidRotate.setTolerance(tolerance);
         pidRotate.enable();
 
-        //while (!pidRotate.onTarget()){
         runtime.reset();
-        while(!(globalAngle <= degreesToTurn + 1 && globalAngle >= degreesToTurn - 1) && runtime.seconds() < 2){
+        while(!(globalAngle <= degreesToTurn + tolerance && globalAngle >= degreesToTurn - tolerance) && runtime.seconds() < maxTime){
             getAngle();
             telemetry.addData("angle I want", degreesToTurn);
             telemetry.addData("angle I have", globalAngle);
