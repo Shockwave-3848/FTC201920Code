@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.Code.unused;
-
 /*
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Code.Encoder;
 import org.firstinspires.ftc.teamcode.Code.GyroTurn;
-import org.firstinspires.ftc.teamcode.Code.unused.SensorREVColor;
+import org.firstinspires.ftc.teamcode.Code.SensorREVColor;
 
 import java.lang.Math;
 
